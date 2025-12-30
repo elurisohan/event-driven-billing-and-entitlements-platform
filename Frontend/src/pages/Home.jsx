@@ -1,11 +1,14 @@
-import { getProjects } from "../services/projectService";
+import  getProjects  from "../services/projectService";
 import { AuthContext } from "../context/AuthContext";
 import {  useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateModal from "../components/CreateModal";
 import EditModal from "../components/EditModal";
 import DeleteModal from "../components/DeleteModal";
+//import {getTasksByProject} from "../services/taskService";
 
+//In Home, we maintain projects whole state, error anloading. we control various other components from here. 
+//we have functinos which update the state
 
 function Home(){
     const [projects, setProjects]  = useState([]);
@@ -19,19 +22,46 @@ function Home(){
     const navigate=useNavigate();
 
     useEffect(()=>{
-            async function loadProjects(){
+        async function loadProjects(){
+           try{
+            const proj=await getProjects();
+            setProjects(proj);
+           }
+           catch(err){
+            setError(err.message)
+           }
+           finally{
+            setLoading(false)
+           }
+        }loadProjects()},[])
+
+
+
+           /* async function loadProjectsAndTasks(){
                 try{
-                const response=await getProjects();
-                setProjects(response)
-                      }
-                catch(err){
+                const responseProjects=await getProjects();
+                const projectsWithTasks=await Promise.all(
+                    responseProjects.map(async (project)=>{
+                        try{
+                        const tasks=await getTasksByProject(project.id);
+                        return {...projects,tasks};
+                        } catch(err)
+                        {
+                            console.error("Failed to load Tasks for Project ${project.id}:",err)
+                            return {...projects,tasks:[]};
+                        }
+                })
+                )
+                setProjects(projectsWithTasks);
+            }
+            catch(err){
                     setError(err.message || "Failed to load projects");
-                            }
-                finally{
+                    }
+            finally{
                     setLoading(false);
                 }
-                        } loadProjects();
-                    },[]);
+                        } loadProjectsAndTasks();
+                    },[]);*/
   
 
     if (loading){

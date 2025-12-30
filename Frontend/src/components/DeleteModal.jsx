@@ -10,8 +10,8 @@ export default function DeleteModal({project, onClose, onProjectDeleted}){
         setError(false);
 
         try{
-            await api.delete(`/projects/${project.id}`);
-            onProjectDeleted(project.id);
+            await api.delete(`/projects/${project.projectId}`);
+            onProjectDeleted(project.projectId);
             onClose();
         }
         catch(err){

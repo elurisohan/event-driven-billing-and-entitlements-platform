@@ -1,21 +1,22 @@
 import { useState } from "react";
-import api from "../api/axios";
+import {api} from "../api/axios";
+import CreateTaskModal from "./CreateTaskModal";
+import  createProject,getProjects, getTasksByProject  from "../services/projectService";
 
 export default function CreateModal({onClose,onProjectCreated}){
     const [name,setName]=useState("");
     const [description,setDescription]=useState("");
+    const [showCreateTaskModal,setShowCreateTaskModal]=(false);
     const [tasks, setTasks] = useState([]);
     const [loading,setLoading]=useState(false);
-    const [error,setError]=useState(false)
+    const [error,setError]=useState(null);
+    const [projects,setProjects]=useState(null);
 
-    // Task form states
-    const [taskName, setTaskName] = useState("");
-    const [taskDescription, setTaskDescription] = useState("");
-    const [taskStatus, setTaskStatus] = useState("NEW");
-    const [taskPriority, setTaskPriority] = useState("LOW");
-    const [taskDueDate, setTaskDueDate] = useState("");
-
+ /*   
     function addTask(){
+        //let's call createTask Component. This component should show a form where we send the request to backend
+        
+        /*
         if(!taskName.trim()) {
             alert("Task name is required");
             return;
@@ -37,10 +38,42 @@ export default function CreateModal({onClose,onProjectCreated}){
         setTaskStatus("NEW");
         setTaskPriority("LOW");
         setTaskDueDate("");
-    }
+    */
+    
+    
 
     function removeTask(index){
         setTasks(tasks.filter((_, i) => i !== index));
+    }
+
+    async function handleCreatedTasks(e){
+        //here we need to attach tasks with Project
+        e.preventdefault();
+        setLoading(true)
+        try{
+            const responseProjects=await getProjects();
+            const projectWithTasks=Promise.all(
+                responseProjects.map(async (project)=>{
+                    try{
+                    const tasks=await getTasksByProject(project.id)
+                    return {...project,tasks}
+                    }
+                    catch (err){
+                        console.error(err.message)
+                        return {...project,tasks:[]};
+                    }
+                })
+
+            )
+            setProjects(projectWithTasks)
+        }
+        catch(err){
+            setError(true)
+            
+        }
+        finally{
+            setLoading(false)
+        }
     }
 
     async function handleSubmit(e){
@@ -49,7 +82,7 @@ export default function CreateModal({onClose,onProjectCreated}){
         setError(false);
 
         try{
-        const res=await api.post("/projects/",{
+        const res=await createProject({
             name,
             description
         })
@@ -94,107 +127,8 @@ export default function CreateModal({onClose,onProjectCreated}){
                     onChange={(e)=>setDescription(e.target.value)}
                     required
                 />
-            </div>
-
-            {/* Tasks Section */}
-            <div style={styles.tasksSection}>
-                <h3>Tasks (Optional)</h3>
+            </div>       
                 
-                {/* Task Form */}
-                <div style={styles.taskForm}>
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Task Name</label>
-                        <input
-                            style={styles.input}
-                            type="text"
-                            placeholder="Task name"
-                            value={taskName}
-                            onChange={(e)=>setTaskName(e.target.value)}
-                        />
-                    </div>
-
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Task Description</label>
-                        <textarea
-                            style={styles.textarea}
-                            placeholder="Task description"
-                            value={taskDescription}
-                            onChange={(e)=>setTaskDescription(e.target.value)}
-                        />
-                    </div>
-
-                    <div style={styles.formRow}>
-                        <div style={styles.formGroup}>
-                            <label style={styles.label}>Status</label>
-                            <select 
-                                style={styles.select}
-                                value={taskStatus} 
-                                onChange={(e)=>setTaskStatus(e.target.value)}
-                            >
-                                <option value="NEW">NEW</option>
-                                <option value="IN_PROGRESS">IN_PROGRESS</option>
-                                <option value="COMPLETED">COMPLETED</option>
-                                <option value="BLOCKED">BLOCKED</option>
-                            </select>
-                        </div>
-
-                        <div style={styles.formGroup}>
-                            <label style={styles.label}>Priority</label>
-                            <select 
-                                style={styles.select}
-                                value={taskPriority} 
-                                onChange={(e)=>setTaskPriority(e.target.value)}
-                            >
-                                <option value="LOW">LOW</option>
-                                <option value="MEDIUM">MEDIUM</option>
-                                <option value="HIGH">HIGH</option>
-                                <option value="URGENT">URGENT</option>
-                            </select>
-                        </div>
-
-                        <div style={styles.formGroup}>
-                            <label style={styles.label}>Due Date</label>
-                            <input
-                                style={styles.input}
-                                type="date"
-                                value={taskDueDate}
-                                onChange={(e)=>setTaskDueDate(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    <button type="button" onClick={addTask} style={styles.addTaskButton}>
-                        + Add Task
-                    </button>
-                </div>
-
-                {/* Task List */}
-                {tasks.length > 0 && (
-                    <div style={styles.tasksList}>
-                        <h4>Added Tasks ({tasks.length})</h4>
-                        {tasks.map((task, index) => (
-                            <div key={index} style={styles.taskItem}>
-                                <div style={styles.taskItemHeader}>
-                                    <strong>{task.name}</strong>
-                                    <button 
-                                        type="button" 
-                                        onClick={()=>removeTask(index)}
-                                        style={styles.removeButton}
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                                <p style={styles.taskItemDesc}>{task.description}</p>
-                                <div style={styles.taskItemDetails}>
-                                    <span>Status: {task.status}</span>
-                                    <span>Priority: {task.priority}</span>
-                                    {task.dueDate && <span>Due: {task.dueDate}</span>}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
 
             <div style={styles.buttonGroup}>
                 <button type="button" onClick={onClose} style={styles.cancelButton}>Cancel</button>
@@ -202,11 +136,26 @@ export default function CreateModal({onClose,onProjectCreated}){
                     {loading ? "Creating..." : "Create Project"}
                 </button>
             </div>
+
+            <div>   
+                <button type="button" onClick={()=>setShowCreateTaskModal(true)} style={styles.addTaskButton}>
+                    + Add Task
+                </button>
+            </div>  
+
+            {showCreateTaskModal && <CreateTaskModal
+                 // send projectId here  projectId={pro}
+                    onClose={()=>setShowCreateTaskModal(false)}
+                    onTaskCreated={()=>handleCreatedTasks()}
+            />  
+            }
+            
         </form>
         </div>
         </div>
     )
 }
+
 
 const styles = {
     modalOverlay: {
