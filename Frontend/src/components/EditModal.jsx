@@ -1,144 +1,199 @@
-import { useState } from "react";
-import api from "../api/axios";
+import { useState } from "react"
+import { updateProject } from "../services/projectService"
+import EditTaskModal from "./EditTaskModal"
 
-export default function EditModal({project, onClose, onProjectUpdated}){
-    const [name,setName]=useState(project.name);
-    const [description,setDescription]=useState(project.description);
-    const [loading,setLoading]=useState(false);
+function EditModal({edProject,onClose,onProjectEdited}){
+    const [projectName,setProjectName]=useState(edProject.name)
+    const [projectDesc,setProjectDesc]=useState(edProject.desc)
+    const [tasks,setTasks]=useState(edProject.tasks)
+    const [loading,setLoading]=useState(false)
     const [error,setError]=useState(false)
+    const [editTask,setEditTask]=useState(false)
+    const [task,setTask]=useState(null);
 
-    async function handleSubmit(e){
+    async function handleUpdateProject(e){
         e.preventDefault()
-        setLoading(true);
-        setError(false);
-
+        setLoading(true)
+        setError(false)
         try{
-            const res=await api.patch(`/projects/${project.id}`,{
-                name,
-                description
-            })
-            onProjectUpdated(res.data);
-            onClose();
+            const upProj=await updateProject(edProject.projectId,{name:projectName,description:projectDesc})
+            onProjectEdited(upProj)
+            onClose()
         }
         catch(err){
-            setError(err.message|| "Failed to update Project")
+            setError(err.message|| "failed to update project")
         }
         finally{
             setLoading(false)
+            
         }
     }
 
+    function updateEditTask(t){
+        setEditTask(true)
+        setTask(t)
+                        }
+
     return (
+
         <div style={styles.modalOverlay}>
-        <div style={styles.modalContent}>
-        <h2>Edit Project</h2>
+            <div style={styles.modalBackdrop} onClick={onClose} />
+                <div style={styles.modalContent}>
+                    <h2 style={styles.title}>Edit Project</h2>
 
-        {error && <p style={{color:"red"}}>{error}</p>}
+                    {error && <p style={{color:"red"}}>{error}</p>}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleUpdateProject}>
             <div style={styles.formGroup}>
                 <label style={styles.label}>Project Title</label>
                 <input
-                    style={styles.input}
-                    type="text"
-                    placeholder="Project name"
-                    value={name}
-                    onChange={(e)=>setName(e.target.value)}
-                    required
+                style={styles.input}
+                type="text"
+                value={projectName}
+                onChange={(e)=>setProjectName(e.target.value)}
+                required
                 />
-            </div>
-
-            <div style={styles.formGroup}>
+</div>
+             <div style={styles.formGroup}>
                 <label style={styles.label}>Project Description</label>
-                <textarea
-                    style={styles.textarea}
-                    placeholder="Describe your project"
-                    value={description}
-                    onChange={(e)=>setDescription(e.target.value)}
-                    required
+                <input
+                style={styles.input}
+                type="text"
+                value={projectDesc}
+                onChange={(e)=>setProjectDesc(e.target.value)}
+                required
                 />
-            </div>
-
-            <div style={styles.buttonGroup}>
-                <button type="button" onClick={onClose} style={styles.cancelButton}>Cancel</button>
-                <button type="submit" disabled={loading} style={styles.submitButton}>
-                    {loading ? "Updating..." : "Update Project"}
-                </button>
-            </div>
+      </div>      
+         <div style={styles.buttonRow}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={styles.cancelButton}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              style={styles.submitButton}
+              disabled={loading}
+            >
+              {loading ? "Updating..." : "Update Project"}
+            </button>
+        </div>
         </form>
+
+            <div style={styles.taskOverlay} >
+                {tasks.map((t)=> (
+                    <div style={styles.indiTask} key={t.id}> 
+                        <h1>{t.name}</h1>
+                        <p>{t.desc}</p>
+                        <button onClick={()=>updateEditTask(t)}>
+                            Edit
+                        </button>
+                    </div>
+                ))}
+            </div>
+                {editTask && <EditTaskModal 
+                    uTask={task}
+                    onClose={() => setEditTask(false)}
+                    />}
+
         </div>
-        </div>
-    )
+    </div>
+  );
 }
 
-const styles = {
+const styles= {
     modalOverlay: {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000
+        position:'fixed',
+        inset:0,
+        display:'flex',
+        flexDirection:'column',
+        justifyContent:'center',
+        alignItems:'center',
+        zIndex:1000
     },
-    modalContent: {
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '8px',
-        maxWidth: '500px',
-        width: '90%'
+    modalBackdrop:{
+        position:'absolute',
+        inset:0,
+        backgroundColor: "rgba(64, 64, 64, 0.4)"
     },
-    formGroup: {
-        marginBottom: '15px'
-    },
-    label: {
-        display: 'block',
-        marginBottom: '5px',
-        fontWeight: '500',
-        color: '#333'
-    },
-    input: {
-        width: '100%',
-        padding: '8px',
-        borderRadius: '4px',
-        border: '1px solid #ddd',
-        fontSize: '14px',
-        boxSizing: 'border-box'
-    },
-    textarea: {
-        width: '100%',
-        padding: '8px',
-        borderRadius: '4px',
-        border: '1px solid #ddd',
-        fontSize: '14px',
-        minHeight: '100px',
-        boxSizing: 'border-box',
-        resize: 'vertical'
-    },
-    buttonGroup: {
-        display: 'flex',
-        gap: '10px',
-        justifyContent: 'flex-end',
-        marginTop: '20px'
-    },
-    cancelButton: {
-        padding: '10px 20px',
-        borderRadius: '5px',
-        border: '1px solid #ddd',
-        backgroundColor: 'white',
-        cursor: 'pointer',
-        fontSize: '14px'
-    },
-    submitButton: {
-        padding: '10px 20px',
-        borderRadius: '5px',
-        border: 'none',
-        backgroundColor: '#2196F3',
-        color: 'white',
-        cursor: 'pointer',
-        fontSize: '14px'
-    }
+   modalContent: {
+    position: "relative",
+    backgroundColor: "white",
+    borderRadius: "8px",
+    padding: "30px",
+    width: "90%",
+    maxWidth: "500px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+    zIndex: 1001,
+  },
+    
+  title: {
+    margin: "0 0 16px 0",
+  },
+  errorText: {
+    color: "red",
+    marginBottom: "12px",
+  },
+  formGroup: {
+    marginBottom: "16px",
+  },
+  label: {
+    display: "block",
+    marginBottom: "6px",
+    fontWeight: 500,
+  }, input: {
+    width: "100%",
+    padding: "8px 10px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+    fontSize: "14px",
+    boxSizing: "border-box",
+  },
+  textarea: {
+    width: "100%",
+    padding: "8px 10px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+    fontSize: "14px",
+    boxSizing: "border-box",
+    minHeight: "80px",
+    resize: "vertical",
+  },
+  buttonRow: {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "8px",
+    marginTop: "8px",
+  },
+  cancelButton: {
+    padding: "8px 14px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+    backgroundColor: "white",
+    cursor: "pointer",
+  },
+  submitButton: {
+    padding: "8px 14px",
+    borderRadius: "4px",
+    border: "none",
+    backgroundColor: "#1976d2",
+    color: "white",
+    cursor: "pointer",
+  },
+  taskOverlay: {
+    marginTop: "20px",
+  },
+  indiTask: {
+    padding: "12px",
+    marginBottom: "8px",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    backgroundColor: "#f9f9f9",
+  }
 }
+
+
+export default EditModal
