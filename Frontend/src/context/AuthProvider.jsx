@@ -5,7 +5,7 @@ export function Authprovider({children}){
     //token,login,logout
 
     const [token,setToken]=useState(()=>{
-        const savedToken=localStorage.getItem("token");
+        const savedToken=sessionStorage.getItem("token");
         return savedToken ?? null
     });
 

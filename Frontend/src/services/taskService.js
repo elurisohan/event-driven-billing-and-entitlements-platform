@@ -14,8 +14,8 @@ export async function getTasksByProject(projectId){
 }
     
 
-export async function createTask(projectId){
-    const createdTask=await api.post(`${api_url}/projects/${projectId}/tasks`);
+export async function createTask(projectId,task){
+    const createdTask=await api.post(`${api_url}/projects/${projectId}/tasks`,task);
     return createdTask.data
 }
 
@@ -28,3 +28,4 @@ export async function deleteTask(taskId){
     const deletedTask=await api.delete(`${api_url}/tasks/${taskId}`)
     return deletedTask.data
 }
+

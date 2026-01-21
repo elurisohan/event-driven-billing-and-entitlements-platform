@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 @ControllerAdvice
 public class ExceptionController {
+
+
 
     @ExceptionHandler(TaskNotFoundException.class)
     public ResponseEntity<?> projectIdNotFound(TaskNotFoundException ex){
@@ -25,6 +28,9 @@ public class ExceptionController {
     public ResponseEntity<?> projectNotFound(ProjectNotFoundException ex){
         return ResponseEntity.badRequest().body(new ResponseStatus(ErrorCodes.PROJECT_NOT_FOUND.getCode(), ex.getMessage()));
     }
+
+
+
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<?> userNotFound(UserNotFoundException ex){
@@ -51,6 +57,11 @@ public class ExceptionController {
     @ExceptionHandler(ProjectDeletionException.class)
     public ResponseEntity<?> projectDeletionException(ProjectDeletionException ex){
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(JWTExpiredException.class)
+    public ResponseEntity<?> jwtTokenExpired(JWTExpiredException ex){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ResponseStatus(401, ex.getMessage()));
     }
 }
 

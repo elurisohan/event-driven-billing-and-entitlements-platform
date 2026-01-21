@@ -1,5 +1,5 @@
 //have a Task state and it's details. and once saved, it should post to backend. and can return from  here and we can add the task to a project inside createModal instead of Home
-import createTask from "../services/taskService.js";
+import {createTask} from "../services/taskService.js";
 import { useState} from "react";
 
 
@@ -8,7 +8,7 @@ export default function CreateTaskModal({projectId,onClose,onTaskCreated}){
 
     // Task form states
     const [loading,setLoading]=useState(false);
-    const [error,setError]=useState(false)
+    const [error,setError]=useState(null)
     const [taskName, setTaskName] = useState("");
     const [taskDescription, setTaskDescription] = useState("");
     const [taskStatus, setTaskStatus] = useState("NEW");
@@ -16,6 +16,8 @@ export default function CreateTaskModal({projectId,onClose,onTaskCreated}){
     const [taskDueDate, setTaskDueDate] = useState("");
     //const [showCreateTaskModal,setShowCreateTaskModal]=useState(false);
     //useEffect and show form. User need not save seperately. 
+
+    console.log("Task called")
 
     async function handleSubmit(e){
         e.preventDefault();
@@ -29,7 +31,7 @@ export default function CreateTaskModal({projectId,onClose,onTaskCreated}){
             priority:taskPriority,
             dueDate:taskDueDate}
         const newTask=await createTask(projectId,task);
-        onTaskCreated(newTask);
+       //I think it should go to Home directly- onTaskCreated(newTask);
         onClose();
         }
         catch(e){
@@ -113,7 +115,7 @@ export default function CreateTaskModal({projectId,onClose,onTaskCreated}){
                     </div>  
 
                     <div style={styles.saveButton}>
-                        <button type="submit" disabled={loading}>Save</button>
+                        <button type="submit" disabled={loading} style={{border:"1px solid #ccc"}}>Save</button>
                     </div>
                 </div>
             </div>
@@ -138,7 +140,7 @@ const styles = {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 1000
+        zIndex: 5000
     },
     modalContent: {
         backgroundColor: 'white',

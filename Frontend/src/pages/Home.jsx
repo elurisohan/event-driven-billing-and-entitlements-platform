@@ -1,11 +1,11 @@
-import  getProjects  from "../services/projectService";
+import { getProjects } from "../services/projectService";
 import { AuthContext } from "../context/AuthContext";
-import {  useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateModal from "../components/CreateModal";
 import EditModal from "../components/EditModal";
 import DeleteModal from "../components/DeleteModal";
-//import {getTasksByProject} from "../services/taskService";
+import { getTasksByProject } from "../services/taskService";
 
 //In Home, we maintain projects whole state, error anloading. we control various other components from here. 
 //we have functinos which update the state
@@ -13,6 +13,7 @@ import DeleteModal from "../components/DeleteModal";
 function Home(){
     const [projects, setProjects]  = useState([]);
     const [loading,setLoading] = useState(true);
+    const [projectTasks,setProjectTasks]=useState({});
     const [error,setError] =useState(null);
     const [showCreateModal,setShowCreateModal]=useState(false);
     const [showEditModal,setShowEditModal]=useState(false);
@@ -21,48 +22,33 @@ function Home(){
     const {logout}=useContext(AuthContext);
     const navigate=useNavigate();
 
-    useEffect(()=>{
-        async function loadProjects(){
-           try{
-            const proj=await getProjects();
-            setProjects(proj);
-           }
-           catch(err){
-            setError(err.message)
-           }
-           finally{
-            setLoading(false)
-           }
-        }loadProjects()},[])
-
-
-
-           /* async function loadProjectsAndTasks(){
-                try{
-                const responseProjects=await getProjects();
-                const projectsWithTasks=await Promise.all(
-                    responseProjects.map(async (project)=>{
-                        try{
-                        const tasks=await getTasksByProject(project.id);
-                        return {...projects,tasks};
-                        } catch(err)
-                        {
-                            console.error("Failed to load Tasks for Project ${project.id}:",err)
-                            return {...projects,tasks:[]};
+    useEffect(() => {
+        async function loadProjects() {
+            try {
+                const proj = await getProjects();
+                setProjects(proj);
+                
+                // Load tasks for all projects in parallel
+                const tasksEntries = await Promise.all(
+                    proj.map(async (p) => {
+                        try {
+                            const tasks = await getTasksByProject(p.projectId);
+                            return [p.projectId, tasks];
+                        } catch (err) {
+                            console.error(`Failed to load tasks for project ${p.projectId}:`, err);
+                            return [p.projectId, []]; // Return empty array on error
                         }
-                })
-                )
-                setProjects(projectsWithTasks);
+                    })
+                );
+                setProjectTasks(Object.fromEntries(tasksEntries));
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
             }
-            catch(err){
-                    setError(err.message || "Failed to load projects");
-                    }
-            finally{
-                    setLoading(false);
-                }
-                        } loadProjectsAndTasks();
-                    },[]);*/
-  
+        }
+        loadProjects();
+    }, []);
 
     if (loading){
         return <p style={{padding:"20px"}}>Loading your data</p>
@@ -76,11 +62,40 @@ function Home(){
     }
 
     function handleUpdateProject(updatedProject){
-        setProjects((prev)=>prev.map(p=>p.id===updatedProject.id?updatedProject:p));
+        setProjects((prev)=>prev.map(p=>p.projectId===updatedProject.projectId?updatedProject:p));
     }
 
-    function handleDeleteProject(projectId){
-        setProjects((prev)=>prev.filter(p=>p.id!==projectId));
+    function handleDeleteProject(projectId) {
+        setProjects((prev) => prev.filter(p => p.projectId !== projectId));
+        // Remove tasks for deleted project
+        setProjectTasks((prev) => {
+            const updated = { ...prev };
+            delete updated[projectId];
+            return updated;
+        });
+    }
+
+    function handleTaskCreated(newTask) {
+        setProjectTasks((prev) => ({
+            ...prev,
+            [newTask.projectId]: [...(prev[newTask.projectId] || []), newTask]
+        }));
+    }
+
+    function handleTaskUpdated(updatedTask) {
+        setProjectTasks((prev) => ({
+            ...prev,
+            [updatedTask.projectId]: (prev[updatedTask.projectId] || []).map(t =>
+                t.id === updatedTask.id ? updatedTask : t
+            )
+        }));
+    }
+
+    function handleTaskDeleted(taskId, projectId) {
+        setProjectTasks((prev) => ({
+            ...prev,
+            [projectId]: (prev[projectId] || []).filter(t => t.id !== taskId)
+        }));
     }
 
     function openEditModal(project){
@@ -108,81 +123,106 @@ function Home(){
                 }}>Logout</button>
         </div>
    
-        {projects.length===0?(<p>No projects</p>):(
-        <div style={styles.projectsContainer}>
-        {projects.map((project)=>(
-            <div key={project.id} style={styles.projectCard}>
-                <div style={styles.projectHeader}>
-                    <strong style={styles.projectName}>{project.name}</strong>
-                    <div style={styles.projectActions}>
-                        <button onClick={()=>openEditModal(project)} style={styles.editButton}>Edit</button>
-                        <button onClick={()=>openDeleteModal(project)} style={styles.deleteButton}>Delete</button>
-                    </div>
-                </div>
-                <p style={styles.projectDescription}>{project.description}</p>
-                
-                {/* Display Tasks */}
-                {project.tasks && project.tasks.length > 0 ? (
-                    <div style={styles.tasksContainer}>
-                        <h4 style={styles.tasksTitle}>Tasks:</h4>
-                        <ul style={styles.tasksList}>
-                        {project.tasks.map((task, index)=>(
-                            <li key={task.id || index} style={styles.taskItem}>
-                                <div style={styles.taskHeader}>
-                                    <span style={styles.taskName}>{task.name}</span>
-                                    <span style={{
-                                        ...styles.taskBadge,
-                                        backgroundColor: task.status === 'NEW' ? '#e3f2fd' : 
-                                                       task.status === 'IN_PROGRESS' ? '#fff3e0' : 
-                                                       task.status === 'COMPLETED' ? '#e8f5e9' : '#f3e5f5'
-                                    }}>{task.status}</span>
+        {projects.length === 0 ? (
+            <p>No projects</p>
+        ) : (
+            <div style={styles.projectsContainer}>
+                {projects.map((project) => {
+                    // Calculate tasks for this project (Option 4 pattern)
+                    const tasks = projectTasks[project.projectId] || [];
+                    
+                    return (
+                        <div key={project.projectId} style={styles.projectCard}>
+                            <div style={styles.projectHeader}>
+                                <strong style={styles.projectName}>{project.name}</strong>
+                                <div style={styles.projectActions}>
+                                    <button onClick={() => openEditModal(project)} style={styles.editButton}>
+                                        Edit
+                                    </button>
+                                    <button onClick={() => openDeleteModal(project)} style={styles.deleteButton}>
+                                        Delete
+                                    </button>
                                 </div>
-                                <p style={styles.taskDescription}>{task.description}</p>
-                                <div style={styles.taskDetails}>
-                                    <span style={styles.taskPriority}>Priority: {task.priority}</span>
-                                    {task.dueDate && <span style={styles.taskDueDate}>Due: {task.dueDate}</span>}
+                            </div>
+                            <p style={styles.projectDescription}>{project.desc}</p>
+                            
+                            {/* Display Tasks */}
+                            {tasks.length > 0 ? (
+                                <div style={styles.tasksContainer}>
+                                    <h4 style={styles.tasksTitle}>Tasks:</h4>
+                                    <ul style={styles.tasksList}>
+                                        {tasks.map((task) => (
+                                            <li key={task.id} style={styles.taskItem}>
+                                                <div style={styles.taskHeader}>
+                                                    <span style={styles.taskName}>{task.name}</span>
+                                                    <span style={{
+                                                        ...styles.taskBadge,
+                                                        backgroundColor: task.status === 'NEW' ? '#e3f2fd' :
+                                                                       task.status === 'IN_PROGRESS' ? '#fff3e0' :
+                                                                       task.status === 'COMPLETED' ? '#e8f5e9' : '#f3e5f5'
+                                                    }}>
+                                                        {task.status}
+                                                    </span>
+                                                </div>
+                                                <p style={styles.taskDescription}>{task.description}</p>
+                                                <div style={styles.taskDetails}>
+                                                    <span style={styles.taskPriority}>Priority: {task.priority}</span>
+                                                    {task.dueDate && (
+                                                        <span style={styles.taskDueDate}>
+                                                            Due: {new Date(task.dueDate).toLocaleDateString()}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
-                            </li>
-                        ))}
-                        </ul>
-                    </div>
-                ) : (
-                    <p style={styles.noTasks}>No tasks yet</p>
-                )}
+                            ) : (
+                                <p style={styles.noTasks}>No tasks yet</p>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
-        ))}
-        </div>
         )}
 
         {showCreateModal && (
-        <CreateModal
-            onClose={()=>setShowCreateModal(false)}
-            onProjectCreated={(newproject)=>handleCreateProject(newproject)}
-        />)}
+            <CreateModal
+                onClose={() => setShowCreateModal(false)}
+                onProjectCreated={(newproject) => handleCreateProject(newproject)}
+                onTaskCreated={handleTaskCreated}
+            />
+        )}
+
 
         {showEditModal && selectedProject && (
-        <EditModal
-            project={selectedProject}
-            onClose={()=>{
-                setShowEditModal(false);
-                setSelectedProject(null);
-            }}
-            onProjectUpdated={(updatedProject)=>{
-                handleUpdateProject(updatedProject);
-            }}
-        />)}
+            <EditModal
+                edProject={selectedProject}
+                onClose={() => {
+                    setShowEditModal(false);
+                    setSelectedProject(null);
+                }}
+                onProjectEdited={(editProject) => handleUpdateProject(editProject)}
+                onTaskCreated={handleTaskCreated}
+                onTaskUpdated={handleTaskUpdated}
+                onTaskDeleted={(taskId) => handleTaskDeleted(taskId, selectedProject.projectId)}
+                projectTasks={projectTasks[selectedProject.projectId] || []}
+            />
+        )}
+
 
         {showDeleteModal && selectedProject && (
-        <DeleteModal
-            project={selectedProject}
-            onClose={()=>{
-                setShowDeleteModal(false);
-                setSelectedProject(null);
-            }}
-            onProjectDeleted={(projectId)=>{
-                handleDeleteProject(projectId);
-            }}
-        />)}
+            <DeleteModal
+                project={selectedProject}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setSelectedProject(null);
+                }}
+                onProjectDeleted={(projectId) => {
+                    handleDeleteProject(projectId);
+                }}
+            />
+        )}
 
     </div>)
 }
@@ -326,3 +366,16 @@ const styles={
         marginTop: '10px'
     }
 }
+
+
+     /*   {showEditModal && selectedProject && (
+        <EditModal
+            project={selectedProject}
+            onClose={()=>{
+                setShowEditModal(false);
+                setSelectedProject(null);
+            }}
+            onProjectUpdated={(updatedProject)=>{
+                handleUpdateProject(updatedProject);
+            }}
+        />)}*/

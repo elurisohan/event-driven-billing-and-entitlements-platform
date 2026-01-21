@@ -2,14 +2,14 @@ import { useState } from "react"
 import { updateProject } from "../services/projectService"
 import EditTaskModal from "./EditTaskModal"
 
-function EditModal({edProject,onClose,onProjectEdited}){
+function EditModal({edProject,onClose,onProjectEdited,projectTasks}){
     const [projectName,setProjectName]=useState(edProject.name)
     const [projectDesc,setProjectDesc]=useState(edProject.desc)
-    const [tasks,setTasks]=useState(edProject.tasks)
+    const [tasks,setTasks]=useState(projectTasks)
     const [loading,setLoading]=useState(false)
     const [error,setError]=useState(false)
     const [editTask,setEditTask]=useState(false)
-    const [task,setTask]=useState(null);
+    const [selectedTask,setSlectedTask]=useState(null);
 
     async function handleUpdateProject(e){
         e.preventDefault()
@@ -31,11 +31,11 @@ function EditModal({edProject,onClose,onProjectEdited}){
 
     function updateEditTask(t){
         setEditTask(true)
-        setTask(t)
+        setSlectedTask(t)
                         }
 
     return (
-
+        <div id="home_root">
         <div style={styles.modalOverlay}>
             <div style={styles.modalBackdrop} onClick={onClose} />
                 <div style={styles.modalContent}>
@@ -82,27 +82,34 @@ function EditModal({edProject,onClose,onProjectEdited}){
             </button>
         </div>
         </form>
-
-            <div style={styles.taskOverlay} >
-                {tasks.map((t)=> (
-                    <div style={styles.indiTask} key={t.id}> 
-                        <h1>{t.name}</h1>
-                        <p>{t.desc}</p>
-                        <button onClick={()=>updateEditTask(t)}>
-                            Edit
-                        </button>
-                    </div>
-                ))}
+       
+            <div style={styles.taskOverlay}> 
+                {projectTasks && projectTasks.length > 0 ? (
+                    projectTasks.map((t)=> (
+                        <div style={styles.indiTask} key={t.id}> 
+                        <label>Task Name</label>
+                            <h1>{t.name}</h1>
+                        <label>Task Description</label>
+                            <p>{t.description}</p>
+                            <button onClick={()=>updateEditTask(t)} style={styles.EditButton}>
+                                Edit
+                            </button>
+                        </div>
+                    ))
+                ) : (
+                    <p style={{color: '#999', fontStyle: 'italic'}}>No tasks yet</p>
+                )}
             </div>
                 {editTask && <EditTaskModal 
-                    uTask={task}
+                    selectedTask={selectedTask}
                     onClose={() => setEditTask(false)}
                     />}
 
         </div>
     </div>
-  );
+  </div>);
 }
+
 
 const styles= {
     modalOverlay: {
@@ -192,6 +199,16 @@ const styles= {
     border: "1px solid #ccc",
     borderRadius: "4px",
     backgroundColor: "#f9f9f9",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+  },
+  EditButton:{
+    border:"1px solid #ccc",
+    inset:"5px",
+    padding:"5px 10px",
+    backgroundColor:"#1976d2",
+    color:"white",
+    marginTop:"20px",
+    cursor:"auto"
   }
 }
 

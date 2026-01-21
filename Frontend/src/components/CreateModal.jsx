@@ -1,161 +1,173 @@
 import { useState } from "react";
-import {api} from "../api/axios";
 import CreateTaskModal from "./CreateTaskModal";
-import  createProject,getProjects, getTasksByProject  from "../services/projectService";
+import { createProject } from "../services/projectService";
+import { getTasksByProject } from "../services/taskService";
 
-export default function CreateModal({onClose,onProjectCreated}){
-    const [name,setName]=useState("");
-    const [description,setDescription]=useState("");
-    const [showCreateTaskModal,setShowCreateTaskModal]=(false);
-    const [tasks, setTasks] = useState([]);
-    const [loading,setLoading]=useState(false);
-    const [error,setError]=useState(null);
-    const [projects,setProjects]=useState(null);
+export default function CreateModal({ onClose, onProjectCreated }) {
+    const [projectId, setProjectId] = useState(null);
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+    const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+    const [tasks, setTasks] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [projectCreated, setProjectCreated] = useState(false);
+    const [createdProject, setCreatedProject] = useState(null);
 
- /*   
-    function addTask(){
-        //let's call createTask Component. This component should show a form where we send the request to backend
-        
-        /*
-        if(!taskName.trim()) {
-            alert("Task name is required");
-            return;
-        }
-
-        const newTask = {
-            name: taskName,
-            description: taskDescription,
-            status: taskStatus,
-            priority: taskPriority,
-            dueDate: taskDueDate
-        };
-
-        setTasks([...tasks, newTask]);
-        
-        // Reset task form
-        setTaskName("");
-        setTaskDescription("");
-        setTaskStatus("NEW");
-        setTaskPriority("LOW");
-        setTaskDueDate("");
-    */
-    
-    
-
-    function removeTask(index){
-        setTasks(tasks.filter((_, i) => i !== index));
-    }
-
-    async function handleCreatedTasks(e){
-        //here we need to attach tasks with Project
-        e.preventdefault();
-        setLoading(true)
-        try{
-            const responseProjects=await getProjects();
-            const projectWithTasks=Promise.all(
-                responseProjects.map(async (project)=>{
-                    try{
-                    const tasks=await getTasksByProject(project.id)
-                    return {...project,tasks}
-                    }
-                    catch (err){
-                        console.error(err.message)
-                        return {...project,tasks:[]};
-                    }
-                })
-
-            )
-            setProjects(projectWithTasks)
-        }
-        catch(err){
-            setError(true)
-            
-        }
-        finally{
-            setLoading(false)
-        }
-    }
-
-    async function handleSubmit(e){
-        e.preventDefault()
+    async function handleCreateProject(e) {
+        e.preventDefault();  // ✅ Prevent form auto-submit
         setLoading(true);
-        setError(false);
+        setError(null);
 
-        try{
-        const res=await createProject({
-            name,
-            description
-        })
-        
-        onProjectCreated(res.data);
-        onClose();
-       }
-       catch(err){
-           setError(err.message|| "Failed to create Project")
-       }
-       finally{
-        setLoading(false)
-       }
+        try {
+            const createdProj = await createProject({ name, description });
+            setProjectId(createdProj.projectId);  
+            const projectTasks=await getTasksByProject(projectId)
+            setTasks(projectTasks)
+            setProjectCreated(true);
+            setCreatedProject(createdProj);
+        } catch (err) {
+            setError(err.message || "Failed to create project");
+        } finally {
+            setLoading(false);
+        }
     }
 
+  
+    function removeTasks(taskId) {
+        setTasks((prev) => prev.filter((t) => t.id !== taskId));  // ✅ Fixed filter
+    }
+
+    function handleFinish() {
+        const projWTask = { ...createdProject, tasks: tasks };
+        onProjectCreated(projWTask);
+        onClose();
+    }
+
+    console.log(projectId)
     return (
         <div style={styles.modalOverlay}>
-        <div style={styles.modalContent}>
-        <h2>Create Project</h2>
-
-        {error && <p style={{color:"red"}}>{error}</p>}
-
-        <form onSubmit={handleSubmit}>
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Project Title *</label>
-                <input
-                    style={styles.input}
-                    type="text"
-                    placeholder="Project name"
-                    value={name}
-                    onChange={(e)=>setName(e.target.value)}
-                    required
-                />
-            </div>
-
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Project Description *</label>
-                <textarea
-                    style={styles.textarea}
-                    placeholder="Describe your project"
-                    value={description}
-                    onChange={(e)=>setDescription(e.target.value)}
-                    required
-                />
-            </div>       
+            <div style={styles.modalContent}>
                 
+                {!projectCreated ? (
+                    <>
+                        <h2>Create Project</h2>
+                        {error && <p style={{ color: "red" }}>{error}</p>}
+                        
+                        <form onSubmit={handleCreateProject}>  {/* ✅ No parentheses! */}
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Project Name *</label>
+                                <input
+                                    style={styles.input}
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Project name"
+                                    required
+                                />
+                            </div>
 
-            <div style={styles.buttonGroup}>
-                <button type="button" onClick={onClose} style={styles.cancelButton}>Cancel</button>
-                <button type="submit" disabled={loading} style={styles.submitButton}>
-                    {loading ? "Creating..." : "Create Project"}
-                </button>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Project Description *</label>
+                                <textarea
+                                    style={styles.textarea}
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="Project Description"
+                                    required
+                                />
+                            </div>
+
+                            <div style={styles.buttonGroup}>
+                                <button type="button" onClick={onClose} style={styles.cancelButton}>
+                                    Cancel
+                                </button>
+                                <button type="submit" disabled={loading} style={styles.submitButton}>
+                                    {loading ? "Creating..." : "Create Project"}
+                                </button>
+                            </div>
+                        </form>
+                    </>
+                ) : (
+                    <>
+                        <div style={styles.successMessage}>
+                            <h2>✓ Project Created!</h2>
+                            <p>"{name}" has been created successfully.</p>
+                            
+                        </div>
+
+
+                        
+                        {/* Task Management Section */}
+                        <div style={styles.tasksSection}>
+                            <div style={styles.tasksSectionHeader}>
+                                <h3>Add Tasks (Optional)</h3>
+                                <button 
+                                    type="button"
+                                    onClick={() => {
+        setShowCreateTaskModal(true)}  }
+                                    style={styles.addTaskButton}
+                                >
+                                    + Add Task
+                                </button>
+                            </div>
+
+                            {/* Display Added Tasks */}
+                            { tasks > 0 ? (
+                                <div style={styles.tasksList}>
+                                    <p style={styles.tasksCount}>{tasks.length} task(s) added</p>
+                                    {tasks.map((task) => (  // ✅ Implicit return with ()
+                                        <div key={task.id} style={styles.taskItem}>
+                                            <div style={styles.taskItemHeader}>
+                                                <strong>{task.name}</strong>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeTasks(task.id)}  
+                                                    style={styles.removeButton}
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                            <p style={styles.taskItemDesc}>{task.description}</p>
+                                            <div style={styles.taskItemDetails}>
+                                                <span>Status: {task.status}</span>
+                                                <span>Priority: {task.priority}</span>
+                                                {task.dueDate && <span>Due: {task.dueDate}</span>}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p style={styles.noTasksYet}>No tasks added yet</p>
+                            )}
+                        </div>
+
+                        {/* Finish Button */}
+                        <div style={styles.buttonGroup}>
+                            <button 
+                                type="button"
+                                onClick={handleFinish}  
+                                style={styles.submitButton}
+                            >
+                                {tasks.length > 0 ? "Finish & Add Tasks" : "Finish"}
+                            </button>
+                        </div>
+                    </>
+                )}
+
+                {/* Task Modal */}
+                {showCreateTaskModal && projectId && (
+                    <CreateTaskModal
+                        projectId={projectId}
+                        onClose={() => setShowCreateTaskModal(false)}
+                        
+                        
+                    />
+                )}
             </div>
-
-            <div>   
-                <button type="button" onClick={()=>setShowCreateTaskModal(true)} style={styles.addTaskButton}>
-                    + Add Task
-                </button>
-            </div>  
-
-            {showCreateTaskModal && <CreateTaskModal
-                 // send projectId here  projectId={pro}
-                    onClose={()=>setShowCreateTaskModal(false)}
-                    onTaskCreated={()=>handleCreatedTasks()}
-            />  
-            }
-            
-        </form>
         </div>
-        </div>
-    )
+    );
 }
-
 
 const styles = {
     modalOverlay: {
@@ -179,13 +191,15 @@ const styles = {
         maxHeight: '90vh',
         overflowY: 'auto'
     },
+    successMessage: {
+        color: '#4CAF50',
+        padding: '15px',
+        backgroundColor: '#e8f5e9',
+        borderRadius: '8px',
+        marginBottom: '20px'
+    },
     formGroup: {
         marginBottom: '15px'
-    },
-    formRow: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr 1fr',
-        gap: '10px'
     },
     label: {
         display: 'block',
@@ -211,22 +225,17 @@ const styles = {
         boxSizing: 'border-box',
         resize: 'vertical'
     },
-    select: {
-        width: '100%',
-        padding: '8px',
-        borderRadius: '4px',
-        border: '1px solid #ddd',
-        fontSize: '14px',
-        boxSizing: 'border-box'
-    },
     tasksSection: {
-        marginTop: '25px',
+        marginTop: '20px',
         padding: '20px',
         backgroundColor: '#f5f5f5',
         borderRadius: '8px'
     },
-    taskForm: {
-        marginTop: '15px'
+    tasksSectionHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '15px'
     },
     addTaskButton: {
         backgroundColor: '#4CAF50',
@@ -235,11 +244,22 @@ const styles = {
         padding: '8px 16px',
         borderRadius: '4px',
         cursor: 'pointer',
+        fontSize: '14px'
+    },
+    submitButton:{
+        border:"1px solid #ccc",
+        padding:"10px",
+        borderRadius:"20px",
+        
+    }
+    ,
+    tasksCount: {
+        color: '#666',
         fontSize: '14px',
-        marginTop: '10px'
+        marginBottom: '10px'
     },
     tasksList: {
-        marginTop: '20px'
+        marginTop: '10px'
     },
     taskItem: {
         backgroundColor: 'white',
@@ -274,6 +294,11 @@ const styles = {
         cursor: 'pointer',
         fontSize: '12px'
     },
+    noTasksYet: {
+        color: '#999',
+        fontStyle: 'italic',
+        fontSize: '14px'
+    },
     buttonGroup: {
         display: 'flex',
         gap: '10px',
@@ -285,15 +310,6 @@ const styles = {
         borderRadius: '5px',
         border: '1px solid #ddd',
         backgroundColor: 'white',
-        cursor: 'pointer',
-        fontSize: '14px'
-    },
-    submitButton: {
-        padding: '10px 20px',
-        borderRadius: '5px',
-        border: 'none',
-        backgroundColor: '#2196F3',
-        color: 'white',
         cursor: 'pointer',
         fontSize: '14px'
     }

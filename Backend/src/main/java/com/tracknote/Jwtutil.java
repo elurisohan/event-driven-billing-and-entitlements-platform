@@ -1,6 +1,8 @@
 package com.tracknote;
 
 import com.tracknote.dao.UserRepository;
+import com.tracknote.exception.JWTExpiredException;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -48,17 +50,23 @@ JWT improves scalability because no server-side session storage is needed. JWT i
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
-    public String extractUsername(String token){
-        return Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+    public String extractUsername(String token) {
+        try {
+            return Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        }
+        catch (ExpiredJwtException ex){
+            throw new JWTExpiredException();
+        }
     }
 
     public Boolean isTokenExpired(String token){
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getExpiration().before(new Date());
 
     }
+
 
 }

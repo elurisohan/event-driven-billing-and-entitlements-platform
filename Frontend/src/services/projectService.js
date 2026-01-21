@@ -1,7 +1,7 @@
 import api from "../api/axios";
 
 
-const api_url="http://localhost:8081/api/v1/projects"
+const api_url="http://localhost:8081/api/v1"
 
 export async function getProjects() {
     const response=await api.get(`${api_url}/projects/`);
