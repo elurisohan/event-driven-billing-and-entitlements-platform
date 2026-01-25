@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CreateTaskModal from "./CreateTaskModal";
 import { createProject } from "../services/projectService";
 import { getTasksByProject } from "../services/taskService";
@@ -8,11 +8,15 @@ export default function CreateModal({ onClose, onProjectCreated }) {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
-    const [tasks, setTasks] = useState({});
+    const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [projectCreated, setProjectCreated] = useState(false);
     const [createdProject, setCreatedProject] = useState(null);
+
+   
+
+
 
     async function handleCreateProject(e) {
         e.preventDefault();  // ✅ Prevent form auto-submit
@@ -22,8 +26,6 @@ export default function CreateModal({ onClose, onProjectCreated }) {
         try {
             const createdProj = await createProject({ name, description });
             setProjectId(createdProj.projectId);  
-            const projectTasks=await getTasksByProject(projectId)
-            setTasks(projectTasks)
             setProjectCreated(true);
             setCreatedProject(createdProj);
         } catch (err) {
@@ -42,6 +44,10 @@ export default function CreateModal({ onClose, onProjectCreated }) {
         const projWTask = { ...createdProject, tasks: tasks };
         onProjectCreated(projWTask);
         onClose();
+    }
+
+    function handleTaskCreated(newTask){
+        setTasks((prev) => [...prev, newTask]);
     }
 
     console.log(projectId)
@@ -113,7 +119,7 @@ export default function CreateModal({ onClose, onProjectCreated }) {
                             </div>
 
                             {/* Display Added Tasks */}
-                            { tasks > 0 ? (
+                            {tasks.length > 0 ? (
                                 <div style={styles.tasksList}>
                                     <p style={styles.tasksCount}>{tasks.length} task(s) added</p>
                                     {tasks.map((task) => (  // ✅ Implicit return with ()
@@ -160,6 +166,7 @@ export default function CreateModal({ onClose, onProjectCreated }) {
                     <CreateTaskModal
                         projectId={projectId}
                         onClose={() => setShowCreateTaskModal(false)}
+                        onTaskCreated={handleTaskCreated}
                         
                         
                     />

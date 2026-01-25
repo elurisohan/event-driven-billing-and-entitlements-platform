@@ -74,7 +74,14 @@ function Home(){
             return updated;
         });
     }
+function handleTaskDeleted(taskId, projectId) {
+        setProjectTasks((prev) => ({
+            ...prev,
+            [projectId]: (prev[projectId] || []).filter(t => t.id !== taskId)
+        }));
+    }
 
+    
     function handleTaskCreated(newTask) {
         setProjectTasks((prev) => ({
             ...prev,
@@ -91,12 +98,6 @@ function Home(){
         }));
     }
 
-    function handleTaskDeleted(taskId, projectId) {
-        setProjectTasks((prev) => ({
-            ...prev,
-            [projectId]: (prev[projectId] || []).filter(t => t.id !== taskId)
-        }));
-    }
 
     function openEditModal(project){
         setSelectedProject(project);

@@ -31,7 +31,10 @@ export default function CreateTaskModal({projectId,onClose,onTaskCreated}){
             priority:taskPriority,
             dueDate:taskDueDate}
         const newTask=await createTask(projectId,task);
-       //I think it should go to Home directly- onTaskCreated(newTask);
+        // Notify parent component that task was created
+        if (onTaskCreated) {
+            onTaskCreated(newTask);
+        }
         onClose();
         }
         catch(e){
@@ -39,6 +42,7 @@ export default function CreateTaskModal({projectId,onClose,onTaskCreated}){
         }
         finally{
        setLoading(false)
+       
         }
 }
 
@@ -84,8 +88,8 @@ export default function CreateTaskModal({projectId,onClose,onTaskCreated}){
                             >
                                 <option value="NEW">NEW</option>
                                 <option value="IN_PROGRESS">IN_PROGRESS</option>
-                                <option value="COMPLETED">COMPLETED</option>
-                                <option value="BLOCKED">BLOCKED</option>
+                                <option value="DONE">COMPLETED</option>
+                               
                             </select>
                         </div>
 
@@ -99,7 +103,7 @@ export default function CreateTaskModal({projectId,onClose,onTaskCreated}){
                                 <option value="LOW">LOW</option>
                                 <option value="MEDIUM">MEDIUM</option>
                                 <option value="HIGH">HIGH</option>
-                                <option value="URGENT">URGENT</option>
+                            
                             </select>
                         </div>
 

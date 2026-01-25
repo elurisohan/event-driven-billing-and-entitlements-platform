@@ -1,15 +1,26 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { updateProject } from "../services/projectService"
 import EditTaskModal from "./EditTaskModal"
+import CreateTaskModal from "./CreateTaskModal"
 
-function EditModal({edProject,onClose,onProjectEdited,projectTasks}){
+
+function EditModal({edProject,onClose,onProjectEdited,projectTasks=[],onTaskUpdated}){
+  
     const [projectName,setProjectName]=useState(edProject.name)
     const [projectDesc,setProjectDesc]=useState(edProject.desc)
-    const [tasks,setTasks]=useState(projectTasks)
+    const [tasks,setTasks]=useState(projectTasks || [])
+
+    // Sync tasks when projectTasks prop changes
+    useEffect(() => {
+        setTasks(projectTasks || []);
+    }, [projectTasks]);
     const [loading,setLoading]=useState(false)
     const [error,setError]=useState(false)
     const [editTask,setEditTask]=useState(false)
-    const [selectedTask,setSlectedTask]=useState(null);
+    const [selectedTask,setSelectedTask]=useState(null);
+    const [showCreateTaskModal,setShowCreateTaskModal]=useState(false)
+    console.log(edProject);
+    const projectId=edProject.projectId;
 
     async function handleUpdateProject(e){
         e.preventDefault()
@@ -29,10 +40,22 @@ function EditModal({edProject,onClose,onProjectEdited,projectTasks}){
         }
     }
 
+
+
     function updateEditTask(t){
         setEditTask(true)
-        setSlectedTask(t)
+        setSelectedTask(t)
                         }
+
+    function handleTaskUpdated(updatedTask){
+      setTasks((prev)=>prev.map((t)=>(t.id===updatedTask.id?updatedTask:t)))
+      onTaskUpdated?.(updatedTask)
+      setSelectedTask(updatedTask)
+    }
+
+    function handleTaskCreation(newTask){
+      setTasks((prev)=>[...prev,newTask])
+    }
 
     return (
         <div id="home_root">
@@ -84,8 +107,18 @@ function EditModal({edProject,onClose,onProjectEdited,projectTasks}){
         </form>
        
             <div style={styles.taskOverlay}> 
-                {projectTasks && projectTasks.length > 0 ? (
-                    projectTasks.map((t)=> (
+              <div style={styles.taskHeader}>
+                <h3>Tasks</h3>
+                <button 
+                  type="button" 
+                  onClick={() => setShowCreateTaskModal(true)} 
+                  style={styles.addTaskButton}
+                >
+                  + Add Task
+                </button>
+              </div>
+                {tasks && tasks.length > 0 ? (
+                    tasks.map((t)=> (
                         <div style={styles.indiTask} key={t.id}> 
                         <label>Task Name</label>
                             <h1>{t.name}</h1>
@@ -102,7 +135,18 @@ function EditModal({edProject,onClose,onProjectEdited,projectTasks}){
             </div>
                 {editTask && <EditTaskModal 
                     selectedTask={selectedTask}
+                    onTaskUpdated={handleTaskUpdated}
                     onClose={() => setEditTask(false)}
+                    />}
+
+
+                    {showCreateTaskModal && <CreateTaskModal
+                        projectId={projectId}
+                        onClose={() => setShowCreateTaskModal(false)}
+                        onTaskCreated={(newTask) => {
+                            handleTaskCreation(newTask);
+                            setShowCreateTaskModal(false);
+                        }}
                     />}
 
         </div>
@@ -192,6 +236,21 @@ const styles= {
   },
   taskOverlay: {
     marginTop: "20px",
+  },
+  taskHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "12px",
+  },
+  addTaskButton: {
+    padding: "6px 12px",
+    borderRadius: "4px",
+    border: "none",
+    backgroundColor: "#4CAF50",
+    color: "white",
+    cursor: "pointer",
+    fontSize: "14px",
   },
   indiTask: {
     padding: "12px",

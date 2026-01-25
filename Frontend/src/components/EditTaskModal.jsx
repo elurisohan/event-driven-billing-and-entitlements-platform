@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { updateTask } from "../services/taskService";
-import { updateProject } from "../services/projectService";
 
-function EditTaskModal({selectedTask,onClose}){
+function EditTaskModal({selectedTask,onClose,onTaskUpdated}){
     console.log(selectedTask)
-    const [taskName,setTaskName]=useState(selectedTask.name);
-    const [taskDesc,setTaskDesc]=useState(selectedTask.description);
-    const [taskStatus,setTaskStatus]=useState(selectedTask.status);
-    const [taskPriority,setTaskPriority]=useState(selectedTask.priority);
-    const [taskDueDate,setTaskDueDate]=useState(selectedTask.date);
-    const taskDTO={taskName,taskDesc,taskStatus,taskPriority,taskDueDate}
+    const [name,setName]=useState(selectedTask.name);
+    const [description,setDescription]=useState(selectedTask.description);
+    const [status,setStatus]=useState(selectedTask.status);
+    const [priority,setPriority]=useState(selectedTask.priority);
+    const [dueDate,setDueDate]=useState(selectedTask.date);
+    const taskDTO={name,description,status,priority,dueDate}
     const [loading,setLoading]=useState(false)
     const [error,setError]=useState(null)
 
@@ -18,13 +17,12 @@ function EditTaskModal({selectedTask,onClose}){
         try{
             setLoading(true)
         const updatedTask=await updateTask(selectedTask.id,taskDTO)
-        console.log(updatedTask)
+        onTaskUpdated?.(updatedTask)
         }
         catch(ex){
             setError(ex.message)
         }
         finally{
-           
             setLoading(false)
             onClose()
         }
@@ -43,8 +41,8 @@ function EditTaskModal({selectedTask,onClose}){
                         <div style={styles.formGroup}>                       
                         <input 
                         type="text"
-                        value={taskName}
-                        onChange={(e)=>setTaskName(e.target.value)}
+                        value={name}
+                        onChange={(e)=>setName(e.target.value)}
                         required
                         />
                         </div>
@@ -53,8 +51,8 @@ function EditTaskModal({selectedTask,onClose}){
                         <div style={styles.formGroup}>
                         <input 
                         type="text"
-                        value={taskDesc}
-                        onChange={(e)=>setTaskDesc(e.target.value)}
+                        value={description}
+                        onChange={(e)=>setDescription(e.target.value)}
                         required
                         />
                     </div>
@@ -62,32 +60,37 @@ function EditTaskModal({selectedTask,onClose}){
                     <div style={styles.formRow}>
                         <label>Task Priority</label>
                         <select 
-                        value={taskPriority}
-                        onChange={(e)=>setTaskPriority(e.target.value)}
+                        value={priority}
+                        onChange={(e)=>setPriority(e.target.value)}
                         required
                         >
                             <option value="NEW">NEW</option>
                                 <option value="IN_PROGRESS">IN_PROGRESS</option>
-                                <option value="COMPLETED">COMPLETED</option>
-                                <option value="BLOCKED">BLOCKED</option>
+                                <option value="DONE">COMPLETED</option>
+                               
                             </select>
                     </div>
 
                     <div style={styles.formRow}>
                     
                         <label>Task Status</label>
-                        <input 
-                        value={taskStatus}
-                        onChange={(e)=>setTaskStatus(e.target.value)}
+                        <select 
+                        value={status}
+                        onChange={(e)=>setStatus(e.target.value)}
                         required
-                        />
+                        >
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                        </select>
                     </div>
 
                     <div style={styles.formRow}>
                         <label>Task Due Date</label>
                         <input 
-                        value={taskDueDate}
-                        onChange={(e)=>setTaskDueDate(e.target.value)}
+                        type="date"
+                        value={dueDate}
+                        onChange={(e)=>setDueDate(e.target.value)}
                         
                         />
                     </div>
