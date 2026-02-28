@@ -67,10 +67,12 @@ Sometimes switch to a more explicit builder configuration if you want full contr
 
     @ManyToMany
     @JoinTable(name="project_shared_users",joinColumns =@JoinColumn(name="project_id"),inverseJoinColumns = @JoinColumn(name="user_id"))
+    @Builder.Default
     private Set<User> sharedUsers=new HashSet<>();
 
 
     @OneToMany(mappedBy = "project",cascade = CascadeType.ALL,orphanRemoval = true)
+    @Builder.Default
     private List<Task> tasks=new ArrayList<>();
 }
 

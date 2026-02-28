@@ -47,7 +47,7 @@ import java.util.List;
                     .csrf(AbstractHttpConfigurer::disable)
                     .cors(cors->cors.configurationSource(corsConfigurationSource()))
                     .sessionManagement(sess->sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .authorizeHttpRequests(auth->auth.requestMatchers("/api/v1/auth/**","/error","/actuator/health").permitAll()
+                    .authorizeHttpRequests(auth->auth.requestMatchers("/api/v1/auth/**","/error","/actuator/health","/plans").permitAll()
                                             .anyRequest().authenticated())
                     .addFilterBefore(jwtAuthFilter,UsernamePasswordAuthenticationFilter.class)
                     .build();

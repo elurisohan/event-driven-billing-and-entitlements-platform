@@ -5,6 +5,7 @@ import {BrowserRouter,Link,Route,Routes} from 'react-router-dom';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Home from './pages/Home.jsx';
+import Plans from './pages/Plans.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 
@@ -30,7 +31,8 @@ function App() {
     <Link style={{textDecoration:'none'
     }} to='/login'>login</Link>|{" "}
     <Link to='/signup'>signup</Link>|{" "}
-    <Link to='/home'>Home</Link>
+    <Link to='/home'>Home</Link>|{" "}
+    <Link to='/plans'>Plans</Link>
 </div>
 </nav>
 
@@ -38,6 +40,7 @@ function App() {
       <Route path="/login" element={<Login/>}/>
       <Route path="/signup" element={<Register/>}/>
       <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>}/>
+      <Route path="/plans" element={<Plans />}/>
     </Routes>
     </BrowserRouter>
   );

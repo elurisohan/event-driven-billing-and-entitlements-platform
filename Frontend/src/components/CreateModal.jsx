@@ -60,7 +60,7 @@ export default function CreateModal({ onClose, onProjectCreated }) {
                         <h2>Create Project</h2>
                         {error && <p style={{ color: "red" }}>{error}</p>}
                         
-                        <form onSubmit={handleCreateProject}>  {/* ✅ No parentheses! */}
+                        <form onSubmit={handleCreateProject}>  {/* No parentheses! */}
                             <div style={styles.formGroup}>
                                 <label style={styles.label}>Project Name *</label>
                                 <input
@@ -122,7 +122,7 @@ export default function CreateModal({ onClose, onProjectCreated }) {
                             {tasks.length > 0 ? (
                                 <div style={styles.tasksList}>
                                     <p style={styles.tasksCount}>{tasks.length} task(s) added</p>
-                                    {tasks.map((task) => (  // ✅ Implicit return with ()
+                                    {tasks.map((task) => (  //  Implicit return with ()
                                         <div key={task.id} style={styles.taskItem}>
                                             <div style={styles.taskItemHeader}>
                                                 <strong>{task.name}</strong>

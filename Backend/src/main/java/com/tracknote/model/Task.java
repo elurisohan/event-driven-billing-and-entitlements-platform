@@ -34,6 +34,7 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private Priority priority;
 
+    @Builder.Default
     private Date createdAt=new Date();
 
     private Date dueDate;

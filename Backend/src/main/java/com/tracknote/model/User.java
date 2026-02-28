@@ -30,9 +30,18 @@ public class User {
 
     private String password;
 
+    @Column(unique = true)
+    private String stripeCustomerId;
+
+    @OneToOne(mappedBy ="user" ,cascade = CascadeType.ALL)
+    private Subscription subscription;
+
+
     @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
+    @Builder.Default
     private List<Project> ownedProject= new ArrayList<>();
 
     @ManyToMany(mappedBy = "sharedUsers")
+    @Builder.Default
     private Set<Project> sharedProjects=new HashSet<>();
 }
