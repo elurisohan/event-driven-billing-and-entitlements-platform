@@ -1,8 +1,7 @@
-package com.tracknote;
+package com.tracknote.config;
 
+import com.tracknote.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,7 +46,12 @@ import java.util.List;
                     .csrf(AbstractHttpConfigurer::disable)
                     .cors(cors->cors.configurationSource(corsConfigurationSource()))
                     .sessionManagement(sess->sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .authorizeHttpRequests(auth->auth.requestMatchers("/api/v1/auth/**","/error","/actuator/health","/plans").permitAll()
+                    .authorizeHttpRequests(auth->auth.requestMatchers(
+                                            "/api/v1/auth/**",
+                                            "/api/v1/webhook/stripe",
+                                            "/error",
+                                            "/actuator/health",
+                                            "/plans").permitAll()
                                             .anyRequest().authenticated())
                     .addFilterBefore(jwtAuthFilter,UsernamePasswordAuthenticationFilter.class)
                     .build();

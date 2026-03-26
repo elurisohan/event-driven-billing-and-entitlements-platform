@@ -26,16 +26,15 @@ public class User {
 
     private String fullname;
 
+    @Column(name = "stripe_customer_id")
+    private String stripeCustomerId;
+
     private String email;
 
     private String password;
 
-    @Column(unique = true)
-    private String stripeCustomerId;
-
     @OneToOne(mappedBy ="user" ,cascade = CascadeType.ALL)
     private Subscription subscription;
-
 
     @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
     @Builder.Default

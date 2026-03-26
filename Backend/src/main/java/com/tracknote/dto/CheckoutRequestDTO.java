@@ -1,4 +1,11 @@
 package com.tracknote.dto;
 
-public class CheckoutRequest {
+
+import lombok.Data;
+
+@Data
+public class CheckoutRequestDTO {
+
+
+    private String priceId;
 }

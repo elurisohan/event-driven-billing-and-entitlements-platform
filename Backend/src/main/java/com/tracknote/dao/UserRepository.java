@@ -13,6 +13,8 @@ public interface UserRepository extends JpaRepository<User,Integer> {
     Optional<com.tracknote.model.User> findByUsername(String username);
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByStripeCustomerId(String stripeCustomerId);
+
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
 }

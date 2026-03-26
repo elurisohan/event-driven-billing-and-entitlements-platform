@@ -39,6 +39,17 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
 
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe-cli
+    stdin_open: true
+    tty: true
+    command: ["listen", "--forward-to", "http://host.docker.internal:8081/api/v1/webhook/stripe"]
+
+
 volumes:
   postgres_data:
   kafka-data:
+
+
+

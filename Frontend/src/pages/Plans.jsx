@@ -1,12 +1,23 @@
-import api from "../api/axios";
 import { getPlans } from "../services/plansService";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { createCheckoutSession } from "../services/createCheckoutSessionService";
+import ProtectedRoute from "../components/ProtectedRoute";
+import { AuthContext } from "../context/AuthContext";
+import {useNavigate } from "react-router-dom";
 
 /*
  * Transforms API plan data to display format.
  * API shape: { name, stripePriceId, maxProjects, maxTasksPerProject }
+ * 
+ * In React, an event handler like onClick={...} is not run immediately; 
+ * React stores that function and later calls it with a single argument: the event.
+ * 
+ * 
+ * Three important concepts here,
+ * 1. Data transformation. We changed tha
+ * 
  */
-function planToDisplay(apiPlan, index) {
+function planToDisplay(apiPlan, index,isAuthenticated,navigate) {
   const isFree = apiPlan.name?.toUpperCase() === "FREE";
   const projectsText =
     apiPlan.maxProjects != null
@@ -24,7 +35,18 @@ function planToDisplay(apiPlan, index) {
     features: [projectsText, tasksText],
     cta: isFree ? "Get Started" : "Get Pro",
     highlighted: !isFree,
-    onCheckout: () => console.log("Checkout", apiPlan.name),
+    stripePriceId:apiPlan.stripePriceId,
+    //You cannot destructure or access a property directly in the parameter list like apiPlan.stripePriceId; that is treated as an invalid assignment target (hence “Assigning to rvalue”)
+    onCheckout: async () =>{
+      if (!isAuthenticated){
+        navigate("/login",{replace:true})
+      return 
+      }
+      console.log("User logged in")
+    const url=await createCheckoutSession(apiPlan.stripePriceId);
+    console.log(url)
+    window.location.href=url;
+  }
   };
 }
 
@@ -32,10 +54,12 @@ function Plans() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const {isAuthenticated}=useContext(AuthContext);
+  const navigate=useNavigate();
 
   useEffect(() => {
     getPlans()
-      .then((data) => setPlans(data.map((p, i) => planToDisplay(p, i))))
+      .then((data) => setPlans(data.map((p, i) => planToDisplay(p, i,isAuthenticated,navigate))))
       .catch((err) => setError(err?.message || "Failed to load plans"))
       .finally(() => setLoading(false));
   }, []);
@@ -65,7 +89,10 @@ function Plans() {
       </div>
 
       <div style={styles.grid}>
-        {plans.map((plan) => (
+        {plans.map((plan) => {
+          console.log(plan)
+
+          return (
           <div key={plan.name} style={styles.card}>
             <p style={styles.planName}>{plan.name}</p>
 
@@ -87,7 +114,7 @@ function Plans() {
 
             <button
               type="button"
-              onClick={plan.onCheckout}
+              onClick={()=>{plan.onCheckout()}}
               style={{
                 ...styles.button,
                 ...(plan.highlighted ? styles.buttonHighlighted : styles.buttonDefault),
@@ -97,8 +124,8 @@ function Plans() {
             >
               {plan.cta}
             </button>
-          </div>
-        ))}
+          </div>)
+})}
       </div>
     </div>
   );

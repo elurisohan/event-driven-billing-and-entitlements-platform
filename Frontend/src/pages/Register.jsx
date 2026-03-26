@@ -94,6 +94,11 @@ container:{
   display:'flex',
   alignItems:'center',
   justifyContent:'center',
+  flexDirection:'column',
+  backgroundColor: "#fcf8f8",
+},
+auth_form:{
+  display:'flex',
   flexDirection:'column'
 }
 }

@@ -5,3 +5,4 @@ public class TaskNotFoundException extends RuntimeException {
         super(String.format("Task with id '%s' not found",task_id));
     }
 }
+
