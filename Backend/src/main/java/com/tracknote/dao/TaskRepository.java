@@ -15,6 +15,7 @@ public interface TaskRepository extends JpaRepository<Task,Integer> {
     Page<Task> findByStatusAndProjectId(Status status, int projectId, Pageable pageable);
     Page<Task> findByProjectId(int projectId, Pageable pageable);
     List<Task> findByProjectId(int projectId); // for non-paginated version
+    int countByProjectId(int projectId);
 
 
 

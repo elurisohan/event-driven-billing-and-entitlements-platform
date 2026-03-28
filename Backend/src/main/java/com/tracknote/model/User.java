@@ -36,9 +36,14 @@ public class User {
     @OneToOne(mappedBy ="user" ,cascade = CascadeType.ALL)
     private Subscription subscription;
 
+
+    //By default, @ManyToOne is EAGER, so fetching Project usually loads User automatically.
+    //@OneToMany is LAZY by default, so fetching User doesn’t load all projects unless you access the list.
     @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL,orphanRemoval = true)
-    @Builder.Default
+    @Builder.Default//prevents null pointer exception when we try to add without initializing.
     private List<Project> ownedProject= new ArrayList<>();
+    //here the use of above line is to make it convenient for a user, to directly query owned projects from user side. If not, we'd have to manually query project table for all the owned peojects.
+
 
     @ManyToMany(mappedBy = "sharedUsers")
     @Builder.Default

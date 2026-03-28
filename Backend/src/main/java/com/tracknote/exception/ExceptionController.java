@@ -9,6 +9,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+/*
+@ControllerAdvice is a Spring annotation used to define global behavior for controllers.
+Think of it as a “catch-all controller helper”. It can do several things:
+
+Handle exceptions thrown by any controller (@ExceptionHandler)
+Apply data binding rules globally (@InitBinder)
+Add model attributes globally (@ModelAttribute)
+ */
 @ControllerAdvice
 public class ExceptionController {
 
@@ -55,6 +63,11 @@ public class ExceptionController {
     @ExceptionHandler(StripeException.class)
     public ResponseEntity<?> stripeException(StripeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(LimitExceededException.class)
+    public ResponseEntity<?> limitExceededException(LimitExceededException ex) {
+        return ResponseEntity.status(403).body(new ResponseStatus(403, ex.getMessage()));
     }
 }
 

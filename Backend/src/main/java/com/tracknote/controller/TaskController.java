@@ -3,6 +3,7 @@ package com.tracknote.controller;
 
 import com.tracknote.dto.TaskDTO;
 import com.tracknote.dto.TaskResponseDTO;
+import com.tracknote.service.LimitEnforcement;
 import com.tracknote.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,8 @@ import java.util.List;
 public class TaskController {
 
     private final TaskService taskService;
+    private final LimitEnforcement limitEnforcement;
+
 
     @PostMapping("/projects/{projectId}/tasks")
     public ResponseEntity<TaskResponseDTO> createTask(
@@ -28,6 +31,7 @@ public class TaskController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         String username = userDetails.getUsername();
+        limitEnforcement.taskLimit(projectId, username);
         TaskResponseDTO created = taskService.createTask(projectId, taskDTO, username);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
