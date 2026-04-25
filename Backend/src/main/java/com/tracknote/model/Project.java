@@ -4,7 +4,10 @@ package com.tracknote.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Data //getter setter methods, toString and equal to methods
@@ -34,9 +37,17 @@ public class Project {
 
     private String description;
 
+    /*
+    The following is an old way of building used for Java 8 prior classes.
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;//Use @Builder.Default annotation here, This tells Lombok's builder: use these as defaults unless the builder overrides them.
-/*Lombok emits a warning in your error output:
+    private Date createdAt;
+
+     @PrePersist
+    protected void onCreate(){
+        createdAt=new Date();
+    }
+    //Use @Builder.Default annotation here, This tells Lombok's builder: use these as defaults unless the builder overrides them.
+Lombok emits a warning in your error output:
 
 
 "@Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default."
@@ -56,10 +67,9 @@ Sometimes switch to a more explicit builder configuration if you want full contr
 
 
     //In JPA/Hibernate, relationships between entities are represented by object references, not by primitive types like int.
-    @PrePersist
-    protected void onCreate(){
-        createdAt=new Date();
-    }
+    @CreationTimestamp
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name="owner_id")
@@ -69,6 +79,8 @@ Sometimes switch to a more explicit builder configuration if you want full contr
     @JoinTable(name="project_shared_users",joinColumns =@JoinColumn(name="project_id"),inverseJoinColumns = @JoinColumn(name="user_id"))
     @Builder.Default
     private Set<User> sharedUsers=new HashSet<>();
+
+
 
 
     @OneToMany(mappedBy = "project",cascade = CascadeType.ALL,orphanRemoval = true)

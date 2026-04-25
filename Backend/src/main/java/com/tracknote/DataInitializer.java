@@ -13,10 +13,10 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     PlanRepository planRepository;
 
-    @Value("${STRIPE_FREE_PRICE_ID}")
+    @Value("${STRIPE_FREE_PRICE_ID:${gateflow.plans.free.price-id:}}")
     private String free_StripeId;
 
-    @Value("${STRIPE_PRO_PRICE_ID}")
+    @Value("${STRIPE_PRO_PRICE_ID:${gateflow.plans.pro.price-id:}}")
     private String pro_StripeId;
 
     @Override

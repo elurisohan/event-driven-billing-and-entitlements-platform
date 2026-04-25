@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import com.google.gson.JsonSyntaxException;
+
 import java.util.Map;
 //Value annotation can only be used on class level
 //method name should be descriptive and start with lower case
@@ -29,7 +29,7 @@ public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
 
-    @Value("${stripe.webhook.secret}")
+    @Value("${stripe.webhook.secret:}")
     private String endpointSecret;
 
     @PostMapping("/billing/checkout-session")
