@@ -13,6 +13,8 @@ import com.tracknote.exception.UserNotFoundException;
 import com.tracknote.model.Plan;
 import com.tracknote.model.Subscription;
 import com.tracknote.model.User;
+import events.DomainEventPublisher;
+import events.SubscriptionCreated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,12 +29,12 @@ public class UserService {
     private final Jwtutil jwtUtil;
     private final PlanRepository planRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final DomainEventPublisher domainEventPublisher;
 
     @Transactional
     public AuthResponse register(RegisterRequest request){
         if (userRepository.existsByUsername(request.getUsername())){
             //Throwable class - Errors and Exceptions (Checked and Unchecked (RTE)).
-
             throw new RuntimeException("Username already exists");
         } else if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
@@ -65,11 +67,21 @@ The constructor call with multiple parameters can be confusing — it's not imme
 If you have many fields or optional parameters, you might end up with many overloaded constructors or pass null for unused fields.
 
 Immutable objects require many constructors or factory methods to accommodate different parameter combinations. */
-
-        subscriptionRepository.save(subscription);
-        log.info("New User {} has been created",newUser);
         userRepository.save(newUser);
         System.out.println("Saved user successfully");
+        subscriptionRepository.save(subscription);
+        log.info("New User {} has been created",newUser);
+
+        //writing to outbox
+        domainEventPublisher.publish(
+            SubscriptionCreated.builder()
+                    .userId(newUser.getId())
+                    .username(newUser.getUsername())
+                    .planName(freePlan.getName())
+                    .stripeSubscriptionId(null)
+                        .build()
+        );
+
         return new AuthResponse(jwtUtil.generateToken(newUser.getUsername()));
     }
 

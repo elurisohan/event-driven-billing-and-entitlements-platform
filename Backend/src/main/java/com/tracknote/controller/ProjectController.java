@@ -4,6 +4,7 @@ import com.tracknote.Jwtutil;
 import com.tracknote.dto.ProjectDTO;
 import com.tracknote.dto.ProjectResponseDTO;
 import com.tracknote.model.User;
+import com.tracknote.service.LimitEnforcement;
 import com.tracknote.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +22,13 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final Jwtutil jwtutil;
+    private final LimitEnforcement limitEnforcement;
 
     //create
     @PostMapping("/")
-    public ResponseEntity<?> createProject(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody ProjectDTO dto){
+    public ResponseEntity<?> createProject(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody ProjectDTO dto){//should I declare exception here as well or is it not needed because I did inside already
         String username=userDetails.getUsername();
+        limitEnforcement.projectLimit(username);
         return ResponseEntity.ok(projectService.createProject(username,dto));
     }
 

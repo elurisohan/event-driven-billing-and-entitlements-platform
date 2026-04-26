@@ -4,7 +4,7 @@ import com.tracknote.model.Task;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -16,6 +16,6 @@ public class ProjectResponseDTO {
 
     private String desc;
 
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
 }
