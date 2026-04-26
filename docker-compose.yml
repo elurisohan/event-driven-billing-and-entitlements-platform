@@ -43,6 +43,8 @@ services:
     image: stripe/stripe-cli:latest
     container_name: stripe-cli
     stdin_open: true
+    environment:
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
     tty: true
     command: ["listen", "--forward-to", "http://host.docker.internal:8081/api/v1/webhook/stripe"]
 
