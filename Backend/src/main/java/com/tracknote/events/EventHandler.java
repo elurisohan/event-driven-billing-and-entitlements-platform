@@ -1,4 +1,4 @@
-package events;
+package com.tracknote.events;
 
 public interface EventHandler {
 

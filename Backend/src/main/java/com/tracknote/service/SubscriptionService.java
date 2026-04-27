@@ -19,8 +19,6 @@ import com.tracknote.model.Plan;
 import com.tracknote.model.StripeEvent;
 import com.tracknote.model.Subscription;
 import com.tracknote.model.User;
-import events.OutboxDomainEventPublisher;
-import events.SubscriptionUpgraded;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +39,6 @@ public class SubscriptionService {
     private final UserRepository userRepository;
     private final StripeEventRepository stripeEventRepository;
     private final PlanRepository planRepository;
-    private final OutboxDomainEventPublisher outboxDomainEventPublisher;
 
     public String createCheckoutSession(String username, String priceId) throws StripeException {
         User user = userRepository.findByUsername(username)
@@ -81,7 +78,7 @@ public class SubscriptionService {
             log.debug("Stripe event {} already processed; skipping", event.getId());
             return;
         }
-//I think this is where we need to add another line to create an event within Outbox Event. Here, which is my domain Code or High level object. I will depend on Interface. called
+
         switch (event.getType()) {
             case "checkout.session.completed":
                 handleCheckoutSessionCompleted(rawPayload, event);
@@ -89,8 +86,6 @@ public class SubscriptionService {
             default:
                 log.info("Unhandled Stripe event type: {}", event.getType());
         }
-
-        //another case to handle checkout.session failed.
 
         stripeEventRepository.save(StripeEvent.builder()
                 .id(event.getId())
@@ -132,10 +127,6 @@ public class SubscriptionService {
         }
         subscriptionRepository.save(subscription);
         log.info("Subscription updated for user {} to plan {}", user.getUsername(), plan.getName());
-
-        outboxDomainEventPublisher.publish(SubscriptionUpgraded.builder().userId(user.getId()).username(user.getUsername()).stripeSubscriptionId(subscription.getStripeSubscriptionId()).build());
-
-        //set fromPlan - SYSDATE and toPlan to +30 days
     }
 
     private Session deserializeSession(Event event, String rawPayload) throws StripeException {

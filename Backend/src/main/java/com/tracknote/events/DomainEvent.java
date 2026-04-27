@@ -1,4 +1,4 @@
-package events;
+package com.tracknote.events;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;

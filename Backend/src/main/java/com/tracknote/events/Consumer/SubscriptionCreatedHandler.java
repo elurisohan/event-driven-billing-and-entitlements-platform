@@ -1,9 +1,9 @@
-package events.Consumer;
+package com.tracknote.events.Consumer;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import events.SubscriptionCreated;
-import events.EventHandler;
+import com.tracknote.events.SubscriptionCreated;
+import com.tracknote.events.EventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

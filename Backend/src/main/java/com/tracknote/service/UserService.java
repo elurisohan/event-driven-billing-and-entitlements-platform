@@ -13,8 +13,8 @@ import com.tracknote.exception.UserNotFoundException;
 import com.tracknote.model.Plan;
 import com.tracknote.model.Subscription;
 import com.tracknote.model.User;
-import events.DomainEventPublisher;
-import events.SubscriptionCreated;
+import com.tracknote.events.DomainEventPublisher;
+import com.tracknote.events.SubscriptionCreated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,21 +52,7 @@ public class UserService {
                 .status("active")
                 .build();
         log.info("Subscription object created {} ",subscription);
-        /* Theobject creation without a builder would look like:
 
-java
-User newUser = new User(
-    request.getUsername(),
-    request.getName(),
-    request.getEmail(),
-    request.getPassword()
-);
-Downsides without builder:
-The constructor call with multiple parameters can be confusing — it's not immediately clear which argument corresponds to which field.
-
-If you have many fields or optional parameters, you might end up with many overloaded constructors or pass null for unused fields.
-
-Immutable objects require many constructors or factory methods to accommodate different parameter combinations. */
         userRepository.save(newUser);
         System.out.println("Saved user successfully");
         subscriptionRepository.save(subscription);

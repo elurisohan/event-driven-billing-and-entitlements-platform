@@ -1,4 +1,4 @@
-package events;
+package com.tracknote.events;
 
 
 import lombok.extern.slf4j.Slf4j;

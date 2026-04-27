@@ -1,4 +1,4 @@
-package events;
+package com.tracknote.events;
 
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;

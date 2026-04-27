@@ -3,7 +3,7 @@ package com.tracknote.outbox;
 
 import com.tracknote.dao.OutboxEventRepository;
 import com.tracknote.model.OutboxEvent;
-import events.KafkaTopics;
+import com.tracknote.events.KafkaTopics;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
