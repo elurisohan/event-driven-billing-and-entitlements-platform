@@ -16,7 +16,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -53,15 +52,17 @@ public class outboxRelay {
     public void publishEvent(OutboxEvent event){
         try {
             String topic = KafkaTopics.topicFor(event.getType());
+            String messageKey = safeAggregateId(event);
             Message<String> message = MessageBuilder
                     .withPayload(safePayload(event))
                     .setHeader(KafkaHeaders.TOPIC, Objects.requireNonNull(topic))
-                    .setHeader(KafkaHeaders.KEY, safeAggregateId(event).getBytes(StandardCharsets.UTF_8))
+                    .setHeader(KafkaHeaders.KEY, messageKey)
                     .setHeader("eventType", event.getType())
                     .setHeader("eventId", event.getId())
                     .build();
 
             SendResult<String, String> result = kafkaTemplate.send(message).get();
+
             event.setStatus(true);
             event.setPublishedAt(LocalDateTime.now());
             event.setLastError(null);
@@ -109,7 +110,7 @@ public class outboxRelay {
             Message<String> dltMessage = MessageBuilder
                     .withPayload(safePayload(event))
                     .setHeader(KafkaHeaders.TOPIC, Objects.requireNonNull(dltTopic))
-                    .setHeader(KafkaHeaders.KEY, safeAggregateId(event).getBytes(StandardCharsets.UTF_8))
+                    .setHeader(KafkaHeaders.KEY, safeAggregateId(event))
                     .setHeader("eventType", event.getType())
                     .setHeader("originalTopic", KafkaTopics.topicFor(event.getType()))
                     .setHeader("retryCount", event.getRetryCount())

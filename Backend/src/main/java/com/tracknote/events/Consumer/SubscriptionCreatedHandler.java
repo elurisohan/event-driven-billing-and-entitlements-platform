@@ -2,7 +2,6 @@ package com.tracknote.events.Consumer;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tracknote.events.SubscriptionCreated;
 import com.tracknote.events.EventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +22,9 @@ public class SubscriptionCreatedHandler implements EventHandler {
     @Override
     public void handle(String payload){
         try {
-            SubscriptionCreated event = mapper.readValue(payload, SubscriptionCreated.class);
-            log.info("Handled SUBSCRIPTION_CREATED for userId={} username={}",
-                    event.getUserId(), event.getUsername());
+            SubscriptionCreatedMessage message = mapper.readValue(payload, SubscriptionCreatedMessage.class);
+            log.info("Handled SUBSCRIPTION_CREATED for userId={} username={} planName={}",
+                    message.userId(), message.username(), message.planName());
         } catch (Exception e) {
             throw new IllegalStateException("Failed to deserialize SUBSCRIPTION_CREATED payload", e);
         }

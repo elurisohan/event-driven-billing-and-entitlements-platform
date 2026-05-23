@@ -1,6 +1,7 @@
 package com.tracknote.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.tracknote.dao.OutboxEventRepository;
 import com.tracknote.model.OutboxEvent;
@@ -75,6 +76,23 @@ class OutboxDomainEventPublisherTest {
         OutboxEvent saved = captor.getValue();
 
         assertEquals("sub_abc123", saved.getAggregateId());
+    }
+
+    @Test
+    void subscriptionCreated_springStylePayload_exceedsVarchar255() throws Exception {
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        SubscriptionCreated event = SubscriptionCreated.builder()
+                .userId(352)
+                .username("doe1")
+                .planName("FREE")
+                .stripeSubscriptionId(null)
+                .build();
+        String payload = mapper.writeValueAsString(event);
+        assertTrue(
+                payload.length() > 255,
+                "payload length=" + payload.length() + " chars: " + payload
+        );
     }
 
     @Test

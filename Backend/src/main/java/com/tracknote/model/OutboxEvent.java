@@ -29,6 +29,7 @@ public class OutboxEvent {
     @Column(nullable = false)
     private String type ;
 
+    @Column(columnDefinition = "TEXT")
     private String payload;
 
     @Builder.Default
