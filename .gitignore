@@ -1,0 +1,11 @@
+# ignore all env files everywhere
+.env
+**/.env
+
+#ignore logs
+/.log
+
+# node_modules (front + back if they exist)
+node_modules/
+Backend/node_modules/
+Frontend/node_modules/
