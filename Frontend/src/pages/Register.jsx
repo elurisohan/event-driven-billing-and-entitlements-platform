@@ -1,104 +1,206 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../services/authService";
-import { useNavigate } from "react-router-dom";
 
 function Register() {
   const [name, setName] = useState("");
-  const [username,setUsername]=useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading,setLoading]=useState(false);
-  const [error,setError]=useState(null)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
-
-  //after a user signs up. they should be navigated to login page again. Here, we send bundled registration details to the registeruser methof in authservice
-  const handleSubmit =async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(false);
+    setError(null);
 
-    try{
-      const registration_request=await registerUser({name,username,email,password})
-      navigate('/login')
+    try {
+      await registerUser({ name, username, email, password });
+      navigate("/login");
+    } catch (err) {
+      const message = err?.message || "Registration failed. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
     }
-    catch(error){
-      throw (error.response||"Registration Failed")
-    }
-    finally{
-      setLoading(false)
-    }    
   };
 
   return (
     <div style={styles.container}>
-      <form
-      style={styles.auth_form}
-        onSubmit={handleSubmit}
-        //className="bg-white p-6 rounded-lg shadow-md w-80"
-      >
-        <h2 style={styles.heading}>Sign Up</h2>
+      <div style={styles.card}>
+        <header style={styles.header}>
+          <h1 style={styles.title}>Create account</h1>
+          <p style={styles.subtitle}>Start organizing projects with TaskFlow.</p>
+        </header>
 
-        <input
-          type="text"
-          placeholder="Full Name"
-          //className="w-full p-2 border rounded mb-3"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+        {error && <p style={styles.error}>{error}</p>}
 
-        <input
-        type="text"
-        value={username}
-        onChange={(e)=>setUsername(e.target.value)}
-        placeholder="Username"
-        required
-        />
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <Field label="Full name" id="name">
+            <input
+              id="name"
+              type="text"
+              autoComplete="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={styles.input}
+              required
+            />
+          </Field>
 
-        <input
-          type="email"
-          placeholder="Email"
-          //className="w-full p-2 border rounded mb-3"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+          <Field label="Username" id="username">
+            <input
+              id="username"
+              type="text"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              style={styles.input}
+              required
+            />
+          </Field>
 
-        <input
-          type="password"
-          placeholder="Password"
-          //className="w-full p-2 border rounded mb-3"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <Field label="Email" id="email">
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={styles.input}
+              required
+            />
+          </Field>
 
-        <button
-        style={styles.button}
-          type="submit"
-        >
-          {loading?"Creating account...":"Create Account"}
-        </button>
-      </form>
+          <Field label="Password" id="password">
+            <input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
+              minLength={6}
+              required
+            />
+          </Field>
+
+          <button type="submit" style={styles.button} disabled={loading}>
+            {loading ? "Creating account…" : "Create account"}
+          </button>
+        </form>
+
+        <p style={styles.footer}>
+          Already have an account?{" "}
+          <Link to="/login" style={styles.footerLink}>
+            Sign in
+          </Link>
+        </p>
+      </div>
     </div>
+  );
+}
+
+function Field({ label, id, children }) {
+  return (
+    <label htmlFor={id} style={styles.field}>
+      <span style={styles.label}>{label}</span>
+      {children}
+    </label>
   );
 }
 
 export default Register;
 
-
-const styles={
-container:{
-  display:'flex',
-  alignItems:'center',
-  justifyContent:'center',
-  flexDirection:'column',
-  backgroundColor: "#fcf8f8",
-},
-auth_form:{
-  display:'flex',
-  flexDirection:'column'
-}
-}
+const styles = {
+  container: {
+    flex: 1,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: "32px 24px",
+  },
+  card: {
+    width: "100%",
+    maxWidth: "400px",
+    padding: "32px",
+    background: "#fff",
+    borderRadius: "12px",
+    border: "1px solid #e2e8f0",
+    boxShadow: "0 4px 24px rgba(15, 23, 42, 0.06)",
+  },
+  header: {
+    marginBottom: "24px",
+  },
+  title: {
+    margin: 0,
+    fontSize: "22px",
+    fontWeight: 600,
+    color: "#0f172a",
+    letterSpacing: "-0.02em",
+  },
+  subtitle: {
+    margin: "6px 0 0",
+    fontSize: "14px",
+    color: "#64748b",
+    lineHeight: 1.5,
+  },
+  error: {
+    margin: "0 0 16px",
+    padding: "10px 12px",
+    fontSize: "13px",
+    color: "#b91c1c",
+    background: "#fef2f2",
+    borderRadius: "8px",
+    border: "1px solid #fecaca",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+  },
+  field: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+  },
+  label: {
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "#334155",
+  },
+  input: {
+    padding: "10px 12px",
+    fontSize: "14px",
+    color: "#0f172a",
+    background: "#fff",
+    border: "1px solid #cbd5e1",
+    borderRadius: "8px",
+    outline: "none",
+  },
+  button: {
+    marginTop: "8px",
+    padding: "11px 16px",
+    fontSize: "14px",
+    fontWeight: 600,
+    color: "#fff",
+    background: "#0f172a",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+  },
+  footer: {
+    margin: "20px 0 0",
+    fontSize: "13px",
+    color: "#64748b",
+    textAlign: "center",
+  },
+  footerLink: {
+    color: "#0f172a",
+    fontWeight: 500,
+    textDecoration: "none",
+  },
+};
