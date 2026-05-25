@@ -64,10 +64,12 @@ export default Login;
 
 const styles={
   container: {
+    flex: 1,
     display:'flex',
     flexDirection:'column',
     justifyContent:'center',
-    alignItems:'center'
+    alignItems:'center',
+    padding: '24px',
   },
   button:{
     padding:'5px'
