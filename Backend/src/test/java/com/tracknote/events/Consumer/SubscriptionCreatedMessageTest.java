@@ -17,13 +17,13 @@ class SubscriptionCreatedMessageTest {
     @Test
     void deserializesOutboxPayloadWithExtraProperties() throws Exception {
         String payload = """
-                {"eventId":"8c8a1ce1-c4d8-487c-81aa-de41bc946ab0","occurredAt":"2026-05-17T22:52:55.220151100Z","userId":2102,"username":"mandarapu1","planName":"FREE","stripeSubscriptionId":null,"aggregateId":null,"eventType":"SUBSCRIPTION_CREATED","aggregateType":"subscription"}
+                {"eventId":"8c8a1ce1-c4d8-487c-81aa-de41bc946ab0","occurredAt":"2026-05-17T22:52:55.220151100Z","userId":2102,"username":"johnd1","planName":"FREE","stripeSubscriptionId":null,"aggregateId":null,"eventType":"SUBSCRIPTION_CREATED","aggregateType":"subscription"}
                 """;
 
         SubscriptionCreatedMessage message = mapper.readValue(payload, SubscriptionCreatedMessage.class);
 
         assertEquals(2102, message.userId());
-        assertEquals("mandarapu1", message.username());
+        assertEquals("johnd1", message.username());
         assertEquals("FREE", message.planName());
         assertNull(message.stripeSubscriptionId());
         assertEquals("8c8a1ce1-c4d8-487c-81aa-de41bc946ab0", message.eventId());

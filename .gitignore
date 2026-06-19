@@ -47,7 +47,6 @@ build/
 
 src/main/resources/application.properties
 .env
-Backend/logs/
 logs/
 
 
@@ -69,14 +68,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
 dist
 dist-ssr
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo
