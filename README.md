@@ -1,6 +1,6 @@
-# TaskFlow
+# Event Driven Billing Entitlements
 
-TaskFlow is a full-stack personal project for managing projects and tasks with tiered subscription limits. Users sign up on a free plan, organize work into projects, track tasks with status and priority, and can upgrade to Pro via Stripe checkout.
+Event Driven Billing Entitlements is a full-stack personal project for managing projects and tasks with tiered subscription limits. Users sign up on a free plan, organize work into projects, track tasks with status and priority, and can upgrade to Pro via Stripe checkout.
 
 The backend (`com.tracknote`) is a Spring Boot API with JWT authentication, plan-based limit enforcement, and an event-driven subscription pipeline built on the **transactional outbox** pattern and **Apache Kafka**. The frontend is a React SPA that talks to the API over REST.
 
