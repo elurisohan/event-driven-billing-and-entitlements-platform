@@ -1,4 +1,5 @@
-# TaskFlow
+# Event Driven Billing Entitlements
+
 
 Event Driven Billing and Entitlements platform is a full-stack personal project for managing projects and tasks with tiered subscription limits. Users sign up on a free plan, organize work into projects, track tasks with status and priority, and can upgrade to Pro via Stripe checkout.
 
