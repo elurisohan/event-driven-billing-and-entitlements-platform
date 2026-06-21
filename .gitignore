@@ -45,7 +45,7 @@ build/
 ### VS Code ###
 .vscode/
 
-src/main/resources/application.properties
+Backend/src/main/resources/application.properties
 .env
 logs/
 
