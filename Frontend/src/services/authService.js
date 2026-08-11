@@ -1,10 +1,8 @@
 import api from "../api/axios";
 
-const api_url="http://localhost:8081/api/v1/auth";
-
 export async function loginUser(credentials){
     try {
-    const response=await api.post(`${api_url}/login`,credentials)//use backticks here and not usual quotes
+    const response=await api.post('/auth/login',credentials)//use backticks here and not usual quotes
     return response.data;
     }
     catch (err){
@@ -14,7 +12,7 @@ export async function loginUser(credentials){
 
 export async function registerUser(details){
     try{
-    const response=await api.post(`${api_url}/register`,details);
+    const response=await api.post('/auth/register',details);
         return response.data;
 } catch (err){
         const payload= err.response?.data ||  { message: "Network error" };

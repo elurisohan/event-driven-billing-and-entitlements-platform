@@ -10,6 +10,8 @@ services:
       - "5433:5432" 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gateflow-net
 
   kafka:
     image: confluentinc/cp-kafka:7.7.1
@@ -21,13 +23,14 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: 'broker,controller'
       CLUSTER_ID: 'CUH_Q402T7-DePFKCBO_kA'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093' # Points to itself
-      
-      # Listeners: This setup allows both Localhost (IDE) and Docker apps to connect
-      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
+
+      # Listeners: host IDE access on 9092, inter-container traffic on 29092
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       
       # Persistence & Dev Speed
       KAFKA_LOG_DIRS: '/var/lib/kafka/data'
@@ -39,6 +42,46 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
 
+    networks:
+      - gateflow-net
+
+  backend:
+    build: ./Backend
+    image: gateflow-backend:latest
+    container_name: gateflow-backend
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      JWT_SECRET: ${JWT_SECRET}
+      STRIPE_API_KEY: ${STRIPE_API_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - gateflow-net
+
+  frontend:
+    build:
+      context: ./Frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+        VITE_PLANS_URL: /plans
+    image: gateflow-frontend:latest
+    container_name: gateflow-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - gateflow-net
+
   stripe-cli:
     image: stripe/stripe-cli:latest
     container_name: stripe-cli
@@ -48,10 +91,26 @@ services:
     tty: true
     command: ["listen", "--forward-to", "http://host.docker.internal:8081/api/v1/webhook/stripe"]
 
+    networks:
+      - gateflow-net
+
+  jenkins:
+    image: jenkins/jenkins:lts-jdk21
+    container_name: jenkins-local
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    restart: on-failure
+    networks:
+     - gateflow-net
 
 volumes:
   postgres_data:
   kafka-data:
+  jenkins_home:
 
-
-
+networks:
+  gateflow-net:
+    driver: bridge

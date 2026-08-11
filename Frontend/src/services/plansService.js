@@ -1,8 +1,8 @@
-import api from '../api/axios';
+import axios from 'axios';
 
-const api_url='http://localhost:8081/plans'
+const plansUrl = import.meta.env.VITE_PLANS_URL ?? 'http://localhost:8081/plans';
 
 export async function getPlans(){
-    const plans= await api.get(api_url)
-    return plans.data
+    const plans = await axios.get(plansUrl);
+    return plans.data;
 }

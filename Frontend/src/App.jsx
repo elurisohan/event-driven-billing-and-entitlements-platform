@@ -5,7 +5,7 @@ import Home from './pages/Home.jsx';
 import Plans from './pages/Plans.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
-const secondaryNavLinks = [
+/*const secondaryNavLinks = [
   { to: '/signup', label: 'Sign up' },
   { to: '/home', label: 'Home' },
   { to: '/plans', label: 'Plans' },
@@ -102,5 +102,48 @@ const styles = {
     flexDirection: 'column',
   },
 };
+*/
+import React, { useState, useRef } from 'react';
 
-export default App;
+function TimerAndFocus() {
+  const [seconds, setSeconds] = useState(0);
+  
+  // 1. Storing a DOM reference
+  const inputRef = useRef(null);
+
+  // 2. Storing mutable data (Interval ID) without triggering re-renders
+  const timerIdRef = useRef(null);
+
+  const startTimer = () => {
+    if (timerIdRef.current !== null) return;
+    
+    timerIdRef.current = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    clearInterval(timerIdRef.current);
+    timerIdRef.current = null; // Mutating ref.current does NOT re-render the component
+  };
+
+  const focusInput = () => {
+    // Directly focus the input DOM node
+    inputRef.current.focus();
+  };
+
+  return (
+    <div>
+      <h2>Timer: {seconds}s</h2>
+      <button onClick={startTimer}>Start</button>
+      <button onClick={stopTimer}>Stop</button>
+
+      <hr />
+
+      <input ref={inputRef} type="text" placeholder="Type something..." />
+      <button onClick={focusInput}>Focus Input Field</button>
+    </div>
+  );
+}
+
+export default TimerAndFocus;
