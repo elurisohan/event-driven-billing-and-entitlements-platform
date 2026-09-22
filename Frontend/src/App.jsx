@@ -5,7 +5,8 @@ import Home from './pages/Home.jsx';
 import Plans from './pages/Plans.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
-/*const secondaryNavLinks = [
+
+const secondaryNavLinks = [
   { to: '/signup', label: 'Sign up' },
   { to: '/home', label: 'Home' },
   { to: '/plans', label: 'Plans' },
@@ -66,6 +67,8 @@ function App() {
   );
 }
 
+export default App;
+
 const styles = {
   app: {
     minHeight: '100vh',
@@ -102,48 +105,78 @@ const styles = {
     flexDirection: 'column',
   },
 };
-*/
-import React, { useState, useRef } from 'react';
+/*
+import { useState, useEffect } from "react";
 
-function TimerAndFocus() {
-  const [seconds, setSeconds] = useState(0);
-  
-  // 1. Storing a DOM reference
-  const inputRef = useRef(null);
+function App() {
+  const [fruits, setFruits] = useState(["apple", "banana", "orange"]);
+  const [result, setResult] = useState([]);
 
-  // 2. Storing mutable data (Interval ID) without triggering re-renders
-  const timerIdRef = useRef(null);
-
-  const startTimer = () => {
-    if (timerIdRef.current !== null) return;
-    
-    timerIdRef.current = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
-  };
-
-  const stopTimer = () => {
-    clearInterval(timerIdRef.current);
-    timerIdRef.current = null; // Mutating ref.current does NOT re-render the component
-  };
-
-  const focusInput = () => {
-    // Directly focus the input DOM node
-    inputRef.current.focus();
-  };
+  useEffect(() => {
+    setResult(fruits.map((fruit) => fruit.toUpperCase()));
+  }, [fruits]);
 
   return (
     <div>
-      <h2>Timer: {seconds}s</h2>
-      <button onClick={startTimer}>Start</button>
-      <button onClick={stopTimer}>Stop</button>
+      <p>Hello Sohan</p>
 
-      <hr />
-
-      <input ref={inputRef} type="text" placeholder="Type something..." />
-      <button onClick={focusInput}>Focus Input Field</button>
+      <ul>
+        {result.map((fruit, index) => (
+          <li >{fruit}</li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-export default TimerAndFocus;
+export default App;
+
+const api = axios.create();
+
+async function login({a,b}){
+  const resposne = await api.post();
+  return response.data
+
+}
+
+function Handlesubmit(){
+login({email,pwd})
+}
+
+
+
+function TestPage(){
+  const [email, setemail] = useState('')
+  const [pwd, setPwd] = useState('')
+
+  return (
+<div id='root'>
+  <form
+  onSubmit = {handleSubmit}>
+ 
+<input
+value = email
+onChange = {(e)=> setEmail(e.target.value)}
+onChange
+/>
+
+<input
+value = pwd
+onChange = {(e)=> setPwd(e.target.value)}
+onChange
+/>
+
+<button
+type = submit>
+Submit
+</button>
+
+  </form>
+
+</div>
+)
+}
+
+
+
+*/

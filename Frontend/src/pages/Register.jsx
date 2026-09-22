@@ -1,32 +1,32 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { registerUser } from "../services/authService";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
+import { registerUser } from '../services/authService';
 
 function Register() {
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
+  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  const registerMutation = useMutation({
+    mutationFn: registerUser,
+    onSuccess: () => {
+      navigate('/login');
+    },
+  });
 
-    try {
-      await registerUser({ name, username, email, password });
-      navigate("/login");
-    } catch (err) {
-      const message = err?.message || "Registration failed. Please try again.";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    registerMutation.mutate({ name, username, email, password });
   };
+
+  const errorMessage =
+    registerMutation.error?.message ||
+    (registerMutation.isError
+      ? 'Registration failed. Please try again.'
+      : null);
 
   return (
     <div style={styles.container}>
@@ -36,7 +36,7 @@ function Register() {
           <p style={styles.subtitle}>Start organizing projects with TaskFlow.</p>
         </header>
 
-        {error && <p style={styles.error}>{error}</p>}
+        {errorMessage && <p style={styles.error}>{errorMessage}</p>}
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <Field label="Full name" id="name">
@@ -88,13 +88,17 @@ function Register() {
             />
           </Field>
 
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? "Creating account…" : "Create account"}
+          <button
+            type="submit"
+            style={styles.button}
+            disabled={registerMutation.isPending}
+          >
+            {registerMutation.isPending ? 'Creating account…' : 'Create account'}
           </button>
         </form>
 
         <p style={styles.footer}>
-          Already have an account?{" "}
+          Already have an account?{' '}
           <Link to="/login" style={styles.footerLink}>
             Sign in
           </Link>
@@ -118,89 +122,89 @@ export default Register;
 const styles = {
   container: {
     flex: 1,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: "32px 24px",
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '32px 24px',
   },
   card: {
-    width: "100%",
-    maxWidth: "400px",
-    padding: "32px",
-    background: "#fff",
-    borderRadius: "12px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 4px 24px rgba(15, 23, 42, 0.06)",
+    width: '100%',
+    maxWidth: '400px',
+    padding: '32px',
+    background: '#fff',
+    borderRadius: '12px',
+    border: '1px solid #e2e8f0',
+    boxShadow: '0 4px 24px rgba(15, 23, 42, 0.06)',
   },
   header: {
-    marginBottom: "24px",
+    marginBottom: '24px',
   },
   title: {
     margin: 0,
-    fontSize: "22px",
+    fontSize: '22px',
     fontWeight: 600,
-    color: "#0f172a",
-    letterSpacing: "-0.02em",
+    color: '#0f172a',
+    letterSpacing: '-0.02em',
   },
   subtitle: {
-    margin: "6px 0 0",
-    fontSize: "14px",
-    color: "#64748b",
+    margin: '6px 0 0',
+    fontSize: '14px',
+    color: '#64748b',
     lineHeight: 1.5,
   },
   error: {
-    margin: "0 0 16px",
-    padding: "10px 12px",
-    fontSize: "13px",
-    color: "#b91c1c",
-    background: "#fef2f2",
-    borderRadius: "8px",
-    border: "1px solid #fecaca",
+    margin: '0 0 16px',
+    padding: '10px 12px',
+    fontSize: '13px',
+    color: '#b91c1c',
+    background: '#fef2f2',
+    borderRadius: '8px',
+    border: '1px solid #fecaca',
   },
   form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
   },
   field: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
   },
   label: {
-    fontSize: "13px",
+    fontSize: '13px',
     fontWeight: 500,
-    color: "#334155",
+    color: '#334155',
   },
   input: {
-    padding: "10px 12px",
-    fontSize: "14px",
-    color: "#0f172a",
-    background: "#fff",
-    border: "1px solid #cbd5e1",
-    borderRadius: "8px",
-    outline: "none",
+    padding: '10px 12px',
+    fontSize: '14px',
+    color: '#0f172a',
+    background: '#fff',
+    border: '1px solid #cbd5e1',
+    borderRadius: '8px',
+    outline: 'none',
   },
   button: {
-    marginTop: "8px",
-    padding: "11px 16px",
-    fontSize: "14px",
+    marginTop: '8px',
+    padding: '11px 16px',
+    fontSize: '14px',
     fontWeight: 600,
-    color: "#fff",
-    background: "#0f172a",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
+    color: '#fff',
+    background: '#0f172a',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
   },
   footer: {
-    margin: "20px 0 0",
-    fontSize: "13px",
-    color: "#64748b",
-    textAlign: "center",
+    margin: '20px 0 0',
+    fontSize: '13px',
+    color: '#64748b',
+    textAlign: 'center',
   },
   footerLink: {
-    color: "#0f172a",
+    color: '#0f172a',
     fontWeight: 500,
-    textDecoration: "none",
+    textDecoration: 'none',
   },
 };
